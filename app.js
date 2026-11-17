@@ -192,38 +192,68 @@
   const IN_WALLET_APP = /Phantom|Solflare|Backpack/i.test(navigator.userAgent);
   let connecting = null; // one connection request at a time (phone wallets reject overlapping requests)
   // phone wallets inject their provider a moment after the page loads
-  async function waitProvider(ms = 2500) { const t0 = Date.now(); let p; while (!(p = getProvider()) && Date.now() - t0 < ms) await new Promise((r) => setTimeout(r, 150)); return p; }
+  /* Wallet Standard: the modern way Solana wallets expose themselves (more reliable in phone wallet apps) */
+  const STD = [];
+  try {
+    const api = { register: (...ws) => { ws.forEach((w) => { if (!STD.includes(w)) STD.push(w); }); return () => {}; } };
+    window.addEventListener('wallet-standard:register-wallet', (e) => { try { e.detail(api); } catch (_) {} });
+    window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', { detail: api }));
+  } catch (_) {}
+  const stdWallet = () => {
+    const ok = (w) => w?.features?.['standard:connect'] && w.features['solana:signAndSendTransaction'] && (w.chains || []).some((c) => c.startsWith('solana:'));
+    return STD.find((w) => ok(w) && /phantom/i.test(w.name)) || STD.find((w) => ok(w) && /solflare|backpack/i.test(w.name)) || STD.find(ok) || null;
+  };
+  const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  const b58 = (bytes) => { let n = 0n; for (const x of bytes) n = n * 256n + BigInt(x); let out = ''; while (n > 0n) { out = B58[Number(n % 58n)] + out; n /= 58n; } for (const x of bytes) { if (x === 0) out = '1' + out; else break; } return out; };
+  let stdW = null, stdAcct = null; // set when connected through Wallet Standard
+
+  async function waitProvider(ms = 2500) { const t0 = Date.now(); let p; while (!(p = getProvider()) && !stdWallet() && Date.now() - t0 < ms) await new Promise((r) => setTimeout(r, 150)); return p; }
+  const errText = (err) => { const m = String(err?.message || err || 'unknown error'); return err?.code != null ? `${m} [code ${err.code}]` : m; };
+  const isNo = (err) => /reject|cancel|denied|declined|closed/i.test(String(err?.message || err)) || err?.code === 4001;
   async function connectWallet() {
     if (connecting) return connecting;
     connecting = (async () => {
       provider = getProvider() || (IS_MOBILE || IN_WALLET_APP ? await waitProvider() : null);
-      if (!provider) { $('#noWallet').hidden = false; return; }
-      const name = provider.isPhantom ? 'Phantom' : provider.isSolflare ? 'Solflare' : provider.isBackpack ? 'Backpack' : 'your wallet';
+      const sw = stdWallet();
+      if (!provider && !sw) { $('#noWallet').hidden = false; return; }
+      const name = provider ? (provider.isPhantom ? 'Phantom' : provider.isSolflare ? 'Solflare' : provider.isBackpack ? 'Backpack' : 'your wallet') : sw.name;
       toast(`Opening ${name}… approve the request`);
-      console.info('[heistpad] connecting via', name, IS_MOBILE ? '(mobile)' : '');
       const hint = IS_MOBILE ? `${name} hasn't answered. Check for the ${name} prompt, or close and reopen heistpad.live in ${name}'s browser.` : `${name} hasn't answered. Click the ${name} icon in Chrome's toolbar: unlock it or find the request (the pop-up can open behind this window).`;
       const slow = setTimeout(() => toast(hint, 9000), 6000);
-      const attempt = async () => { const r = await provider.connect(); const pk = r?.publicKey || provider.publicKey; if (!pk) throw new Error(`${name} connected but didn't share an address`); return pk; };
+      // connection methods, tried in order until one works
+      const viaStd = async () => { if (!sw) throw new Error('no standard wallet'); const r = await sw.features['standard:connect'].connect(); const acct = (r?.accounts || sw.accounts || [])[0]; if (!acct) throw new Error(`${name} didn't share an account`); stdW = sw; stdAcct = acct; return acct.address; };
+      const viaLegacy = async () => { if (!provider) throw new Error('no injected wallet'); const r = await provider.connect(); const pk = r?.publicKey || provider.publicKey; if (!pk) throw new Error(`${name} didn't share an address`); stdW = null; stdAcct = null; return pk.toString(); };
+      const viaRequest = async () => { if (!provider?.request) throw new Error('no request()'); const r = await provider.request({ method: 'connect' }); const pk = r?.publicKey || provider.publicKey; if (!pk) throw new Error(`${name} didn't share an address`); stdW = null; stdAcct = null; return pk.toString(); };
+      const order = IS_MOBILE || IN_WALLET_APP ? [viaStd, viaLegacy, viaRequest] : [viaLegacy, viaStd, viaRequest];
+      const errors = [];
       try {
-        let pk;
-        try { pk = await attempt(); }
-        catch (err) { // phone wallets sometimes fail the first request while they finish loading; retry once unless the user said no
-          if (/reject|cancel|denied|declined|closed/i.test(String(err?.message || err))) throw err;
-          await new Promise((r) => setTimeout(r, 700)); pk = await attempt();
+        let addr = null;
+        for (const fn of order) {
+          try { addr = await fn(); break; }
+          catch (err) { if (isNo(err)) throw err; if (!/^no (standard wallet|injected wallet|request)/.test(String(err?.message))) errors.push(errText(err)); console.warn('[heistpad] connect method failed:', fn.name, err); await new Promise((r) => setTimeout(r, 400)); }
         }
-        wallet = new W3.PublicKey(pk.toString()); syncWallet(); toast(`${name} connected`);
+        if (!addr) throw new Error(errors[0] || 'no connection method worked');
+        wallet = new W3.PublicKey(addr); syncWallet(); toast(`${name} connected`);
       } catch (err) {
-        const m = String(err?.message || err || '');
-        console.warn('[heistpad] connect failed:', err);
-        toast(/reject|cancel|denied|declined|closed/i.test(m) ? 'Connection cancelled in your wallet' : `Couldn't connect (${name}): ${m.slice(0, 120) || 'unknown error'}. Close and reopen the page, then try again.`, 9000);
+        toast(isNo(err) ? 'Connection cancelled in your wallet' : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 10000);
       } finally { clearTimeout(slow); }
     })();
     try { await connecting; } finally { connecting = null; }
   }
+  // sign + send through whichever connection worked; returns the base58 signature
+  async function signAndSend(tx) {
+    if (stdW) {
+      const [out] = await stdW.features['solana:signAndSendTransaction'].signAndSendTransaction({ account: stdAcct, transaction: tx.serialize(), chain: 'solana:mainnet' });
+      return typeof out.signature === 'string' ? out.signature : b58(out.signature);
+    }
+    if (provider.signAndSendTransaction) { const r = await provider.signAndSendTransaction(tx); return typeof r === 'string' ? r : r.signature; }
+    const signed = await provider.signTransaction(tx); const raw = btoa(String.fromCharCode(...signed.serialize()));
+    return rpcCall('sendTransaction', [raw, { encoding: 'base64', skipPreflight: false }]);
+  }
   $('#walletBtn').addEventListener('click', async () => {
     if (!wallet) return connectWallet();
-    try { await provider?.disconnect?.(); } catch (_) {}
-    wallet = null; syncWallet(); toast('Wallet disconnected');
+    try { if (stdW) await stdW.features['standard:disconnect']?.disconnect(); else await provider?.disconnect?.(); } catch (_) {}
+    wallet = null; stdW = null; stdAcct = null; syncWallet(); toast('Wallet disconnected');
   });
   if (!IS_MOBILE && !IN_WALLET_APP) setTimeout(async () => { // quietly reconnect a trusted wallet (desktop only: phone wallets reject overlapping requests)
     const p = getProvider(); if (!p || connecting || wallet) return;
@@ -334,8 +364,7 @@
       // 3. user approves in their own wallet
       setSteps('sign');
       let signature;
-      if (provider.signAndSendTransaction) { const r = await provider.signAndSendTransaction(tx); signature = typeof r === 'string' ? r : r.signature; }
-      else { const signed = await provider.signTransaction(tx); const raw = btoa(String.fromCharCode(...signed.serialize())); signature = await rpcCall('sendTransaction', [raw, { encoding: 'base64', skipPreflight: false }]); }
+      signature = await signAndSend(tx);
       if (typeof signature !== 'string') throw new Error('Your wallet did not return a transaction signature.');
       // 4. wait for the chain, then record the claim
       setSteps('confirm');
