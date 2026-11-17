@@ -8,17 +8,28 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="styles.css?v=5" rel="stylesheet">
+<link href="styles.css?v=11" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#0c0913">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://heistpad.live/">
+<meta property="og:title" content="Heistpad — every launch is a heist">
+<meta property="og:description" content="Launch a coin out of any business in Florida. Every launch feeds the Vault, which holds tokenized $TTWO.">
+<meta property="og:image" content="https://heistpad.live/assets/brand/heistpad-og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://heistpad.live/assets/brand/heistpad-og.png">
 </head>
 <body>
 
 <header class="top">
   <a class="brand" href="#home" aria-label="Heistpad home">
-    <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="2" y="2" width="36" height="36" rx="9" fill="#ffc83d"/><circle cx="20" cy="20" r="11" fill="none" stroke="#120d1c" stroke-width="3.2"/><circle cx="20" cy="20" r="3.2" fill="#120d1c"/><path d="M20 9v5M20 26v5M9 20h5M26 20h5" stroke="#120d1c" stroke-width="3.2" stroke-linecap="round"/></svg>
+    <img class="mark" src="assets/brand/mark-96.png" width="34" height="34" alt="">
     <b>HEIST</b><span>PAD</span>
   </a>
   <nav class="links">
-    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><button type="button" data-launch>Launch</button>
+    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><a href="#kit">Kit</a><button type="button" data-launch>Launch</button>
   </nav>
   <button type="button" class="ca-chip" data-copy="CA_PLACEHOLDER" aria-label="Copy Heistpad contract address"><i>CA</i><code>launching soon</code></button>
   <button type="button" class="snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -36,6 +47,7 @@
     <path d="M190 260c-4-50-2-100-18-150" stroke="#1d1430" stroke-width="7" fill="none"/><path d="M172 110c-26-4-50 6-68 24 26-6 44-10 68-24zm0 0c20-20 46-24 74-14-28 2-48 6-74 14zm0 0c-12-20-32-32-58-32 22 10 38 18 58 32zm0 0c18 0 40 10 52 28-20-10-34-16-52-28z"/></g>
   </svg>
   <div class="hero-copy">
+    <img class="hero-emblem" src="assets/brand/emblem-480.png" width="240" height="240" alt="Heistpad emblem: a vault door built into a Florida sunset">
     <p class="kicker"><span class="dot"></span>FLORIDA · 6 REGIONS · <b id="bizCount">—</b> BUSINESSES · ONE COIN EACH</p>
     <h1>Every business<br>is a <em>job.</em></h1>
     <p class="lede">Case a nightclub in Miami, a bait shop in the Keys, a launch pad on the Space Coast. The first crew to launch its coin runs it. Every launch kicks a cut into <b>the Vault</b>, which holds tokenized <b class="gold">$TTWO</b>.</p>
@@ -85,7 +97,7 @@
   </div>
   <div class="vault-card">
     <div class="vc-top">
-      <div class="vc-door" aria-hidden="true"><div class="dial"></div></div>
+      <img class="vc-mark" src="assets/brand/heistpad-mark.png" width="62" height="62" alt="">
       <div>
         <small>TOKENIZED TAKE-TWO</small>
         <h3>$TTWO</h3>
@@ -203,8 +215,24 @@
 </section>
 </main>
 
+<section id="kit" class="kit">
+  <div class="sec-head"><div><p class="kicker gold-k">SPREAD THE WORD</p><h2>Heist kit</h2></div><p class="kit-sub">Posters, banners and logos. Tap any one to download it.</p></div>
+  <div class="kit-grid">
+    <a class="kit-card tall" href="assets/brand/heistpad-poster.png" download><img src="assets/brand/thumb-poster.jpg" alt="Heistpad poster: Every business is a job" loading="lazy"><span>Poster · 1080×1350</span></a>
+    <a class="kit-card tall" href="assets/brand/heistpad-story.png" download><img src="assets/brand/thumb-story.jpg" alt="Heistpad story: Hold 1%, pick your heists" loading="lazy"><span>Story · 1080×1920</span></a>
+    <div class="kit-col">
+      <a class="kit-card" href="assets/brand/heistpad-xheader.png" download><img src="assets/brand/thumb-xheader.jpg" alt="Heistpad X header banner" loading="lazy"><span>X header · 1500×500</span></a>
+      <div class="kit-row">
+        <a class="kit-card sq" href="assets/brand/heistpad-pfp.png" download><img src="assets/brand/emblem-480.png" alt="Heistpad profile picture" loading="lazy"><span>Profile pic</span></a>
+        <a class="kit-card sq" href="assets/brand/heistpad-mark.png" download><img src="assets/brand/heistpad-mark.png" alt="Heistpad app mark" loading="lazy"><span>App mark</span></a>
+      </div>
+      <a class="kit-card wm" href="assets/brand/heistpad-wordmark.png" download><img src="assets/brand/wordmark-1240.png" alt="Heistpad wordmark" loading="lazy"><span>Wordmark · transparent</span></a>
+    </div>
+  </div>
+</section>
+
 <footer class="foot">
-  <div class="brand small"><b>HEIST</b><span>PAD</span></div>
+  <img class="foot-wm" src="assets/brand/wordmark-1240.png" width="310" height="75" alt="Heistpad — every launch is a heist">
   <p>Concept build with demo coins. Heistpad is not affiliated with, endorsed by or sponsored by Take-Two Interactive or Rockstar Games. $TTWO is a tokenized equity issued by Backpack Securities; price data from Jupiter. Nothing here is investment advice.</p>
 </footer>
 
