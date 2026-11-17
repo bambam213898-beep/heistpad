@@ -79,7 +79,7 @@ ${star(46, 256, 13, '#120d1c')}${star(466, 256, 13, '#120d1c')}
 </g>
 <circle cx="256" cy="248" r="66" fill="#0c0913" opacity=".3"/>
 ${wheel(256, 244, 60, '#0c0913', 'url(#' + k + 'gold)')}
-${[0, 1, 2, 3, 4].map((i) => star(184 + i * 36, 106 + Math.abs(i - 2) * 6, 12, '#fff', '#0c0913', 4)).join('')}
+${[0, 1, 2, 3, 4, 5].map((i) => star(171 + i * 34, 104 + Math.abs(i - 2.5) * 5.5, 11.5, '#fff', '#0c0913', 4)).join('')}
 <g transform="translate(256 362) skewX(-8)">
   <path d="M-236 -40h472l-22 40 22 40h-472l22-40z" fill="#0c0913" transform="translate(6 7)"/>
   <path d="M-236 -40h472l-22 40 22 40h-472l22-40z" fill="#ff3d8b" stroke="#0c0913" stroke-width="6" stroke-linejoin="round"/>

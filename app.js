@@ -47,7 +47,7 @@
   const fmt$ = (n) => n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `$${(n / 1e3).toFixed(1)}k` : `$${n.toFixed(0)}`;
   const shortCa = (c) => `${c.slice(0, 6)}…${c.slice(-6)}`;
   const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `${m}m` : `${Math.round(m / 60)}h`; };
-  const stars = (vol) => { const n = Math.min(5, Math.max(1, Math.ceil(vol / 9))); return `<span class="stars" title="Wanted level ${n}/5">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`; };
+  const stars = (vol) => { const n = Math.min(6, Math.max(1, Math.ceil(vol / 7.5))); return `<span class="stars" title="Wanted level ${n}/6">${[1, 2, 3, 4, 5, 6].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`; };
   const regionName = (rid) => REGIONS.find((r) => r.id === rid).name;
   const coins = () => BIZ.filter((b) => b.coin);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -328,12 +328,12 @@
   });
 
   let lastStars = 0;
-  const heat = () => Math.min(5, Math.max(1, Math.ceil(coins().reduce((a, b) => a + b.coin.vol, 0) / 70)));
+  const heat = () => Math.min(6, Math.max(1, Math.ceil(coins().reduce((a, b) => a + b.coin.vol, 0) / 70)));
   function hud(bump) {
     const total = coins().reduce((a, b) => a + b.coin.cap, 0);
     const cash = $('#hudCash'); cash.textContent = '$' + Math.round(total).toLocaleString('en-US');
     if (bump) { cash.classList.add('bump'); setTimeout(() => cash.classList.remove('bump'), 200); }
-    const n = heat(); $('#hudStars').innerHTML = [1, 2, 3, 4, 5].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('');
+    const n = heat(); $('#hudStars').innerHTML = [1, 2, 3, 4, 5, 6].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('');
     if (lastStars && n > lastStars) { flashStars(); sfx.star(); }
     lastStars = n;
     $('#stCap').textContent = fmt$(total);
