@@ -468,3 +468,9 @@ body::before{background:radial-gradient(1000px 520px at 80% -15%,rgba(255,61,139
 @media (max-width:760px){.hero-emblem{top:calc(14vw + 64px);right:2%;width:24vw}}
 @media (min-width:981px){.hero-emblem{top:min(7vw,116px);right:4%;width:min(8.4vw,136px)}}
 .vc-mark{width:62px;height:62px;flex:none;filter:drop-shadow(0 4px 0 #000)}
+.empty{grid-column:1/-1;display:grid;justify-items:center;gap:10px;text-align:center;padding:44px 20px;border-radius:20px;border:1px dashed rgba(255,200,61,.4);background:rgba(255,200,61,.04)}
+.empty b{font:400 34px Anton;letter-spacing:1px;text-transform:uppercase}
+.empty span{color:var(--mut);max-width:440px}
+.empty .btn{margin-top:6px}
+.board li.empty-li::before{content:"–"}
+.board li.empty-li span{color:var(--mut)}

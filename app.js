@@ -2,7 +2,7 @@
 (() => {
   const TTWO_MINT = 'TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo';
   const VI_DATE = Date.parse('2026-11-19T00:00:00-05:00');
-  const VAULT_TTWO = 18.42; // demo vault balance
+  const VAULT_TTWO = 0; // fills once real launches start
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -30,18 +30,9 @@
   const PALETTE = ['#ff3d8b', '#ffc83d', '#2de2c8', '#9b7bff', '#ff8a3d', '#3ee08f', '#ff6a5c'];
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const caOf = () => Array.from({ length: 44 }, () => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[(rnd() * 58) | 0]).join('');
-  const DEMO = [
-    ['miami-0', 'Neon Palms', 'NEOPALMS', 6100, 41], ['space-0', 'Pad Thirty Nine', 'PAD39', 4800, 33], ['miami-15', 'Jason Pawn', 'JASON', 4200, 30],
-    ['miami-1', 'Lucia Motors', 'LUCIA', 3900, 26], ['miami-2', 'Macca The Gator', 'MACCA', 3300, 19], ['glades-0', 'Gator Gus', 'GUS', 3050, 22],
-    ['miami-4', 'Crime Cat', 'CRIMECAT', 2600, 14], ['keys-1', 'Duval Drunk', 'DUVAL', 2450, 12], ['miami-6', 'VI Dollars', 'VIDOLLA', 2200, 9],
-    ['gulf-0', 'Ybor Smoke', 'SMOKE', 2100, 11], ['miami-3', 'Vice Inu', 'VINU', 2000, 8], ['pan-1', 'Oyster Boy', 'OYSTER', 1900, 6],
-    ['miami-7', 'Dacity Coin', 'DACITY', 1800, 5], ['space-1', 'Surf Ape', 'SURFAPE', 1700, 4],
-  ];
+  // No premade coins: every business starts open. Real coins arrive from user launches.
+  const LAUNCH_LIVE = false; // flips on when on-chain launching is wired up
   const now = Date.now();
-  DEMO.forEach(([bid, name, tick, cap, vol], i) => {
-    const b = BIZ.find((x) => x.id === bid);
-    b.coin = { name, tick, cap, vol, ca: caOf(), color: PALETTE[i % PALETTE.length], born: now - (i * 7 + 3) * 60000 * (1 + rnd()), img: null };
-  });
 
   /* ---------- helpers ---------- */
   const fmt$ = (n) => n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `$${(n / 1e3).toFixed(1)}k` : `$${n.toFixed(0)}`;
@@ -81,8 +72,8 @@
     $('#stOpen').textContent = BIZ.length - cs.length;
 
     const sorted = [...cs].sort((a, b) => sortBy === 'new' ? b.coin.born - a.coin.born : sortBy === 'heat' ? b.coin.vol - a.coin.vol : b.coin.cap - a.coin.cap);
-    const max = Math.max(...cs.map((b) => b.coin.cap));
-    $('#cards').innerHTML = sorted.slice(0, 12).map((b) => `
+    const max = Math.max(1, ...cs.map((b) => b.coin.cap));
+    $('#cards').innerHTML = !cs.length ? `<div class="empty"><b>No coins yet.</b><span>All ${BIZ.length} businesses on the map are open. The first crew to launch a coin runs the business.</span><button type="button" class="btn pink" data-launch>Be the first crew →</button></div>` : sorted.slice(0, 12).map((b) => `
       <article class="card" data-biz="${b.id}">
         <div class="c-top">${avatar(b.coin)}<div><h4>${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</h4><small>$${esc(b.coin.tick)}</small></div><span class="c-age">${ago(b.coin.born)}</span></div>
         <div class="c-biz"><b>${esc(b.name)}</b> · ${regionName(b.rid)}</div>
@@ -91,8 +82,9 @@
         <div class="c-bot"><button class="btn pink" data-buy="${b.id}">Buy</button><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>
       </article>`).join('');
 
-    $('#bizBoard').innerHTML = [...cs].sort((a, b) => b.coin.cap - a.coin.cap).slice(0, 6).map((b) => `<li><span>${esc(b.name)}<small>${esc(b.type)} · ${regionName(b.rid)}</small></span><b>${fmt$(b.coin.cap)}</b></li>`).join('');
-    $('#crewBoard').innerHTML = [...cs].sort((a, b) => b.coin.vol - a.coin.vol).slice(0, 6).map((b) => `<li><span>$${esc(b.coin.tick)}<small>${stars(b.coin.vol)}</small></span><b>${fmt$(b.coin.vol * 310)} vol</b></li>`).join('');
+    const emptyLi = '<li class="empty-li"><span>Nobody yet. Could be you.<small>Launch a coin to take the top spot</small></span><b>—</b></li>';
+    $('#bizBoard').innerHTML = !cs.length ? emptyLi : [...cs].sort((a, b) => b.coin.cap - a.coin.cap).slice(0, 6).map((b) => `<li><span>${esc(b.name)}<small>${esc(b.type)} · ${regionName(b.rid)}</small></span><b>${fmt$(b.coin.cap)}</b></li>`).join('');
+    $('#crewBoard').innerHTML = !cs.length ? emptyLi : [...cs].sort((a, b) => b.coin.vol - a.coin.vol).slice(0, 6).map((b) => `<li><span>$${esc(b.coin.tick)}<small>${stars(b.coin.vol)}</small></span><b>${fmt$(b.coin.vol * 310)} vol</b></li>`).join('');
 
     $('#regGrid').innerHTML = REGIONS.map((r) => {
       const rc = cs.filter((b) => b.rid === r.id);
@@ -154,7 +146,7 @@
   // update marker look in place (no re-creation, so the map stays smooth while trades tick)
   const mkEls = new Map();
   function sizeMarkers() {
-    const max = Math.max(...coins().map((b) => b.coin.cap));
+    const max = Math.max(1, ...coins().map((b) => b.coin.cap));
     for (const b of BIZ) {
       const el = mkEls.get(b.id); if (!el) continue;
       if (b.coin) {
@@ -204,10 +196,7 @@
   const STORE = 'heistpad.launches.v1';
   const loadSaved = () => { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (_) { return []; } };
   const saveLaunch = (rec) => { try { const all = loadSaved().filter((r) => r.bid !== rec.bid); all.push(rec); localStorage.setItem(STORE, JSON.stringify(all)); } catch (_) {} };
-  for (const r of loadSaved()) {
-    const b = BIZ.find((x) => x.id === r.bid);
-    if (b && !b.coin) b.coin = { name: r.name, tick: r.tick, cap: r.cap || 1500, vol: r.vol || 3, ca: r.ca, color: r.color, born: r.born, img: r.img || null, mine: true };
-  }
+  try { localStorage.removeItem(STORE); } catch (_) {} // clear old demo launches
   // shrink uploads to a small square so they render fast and fit in storage
   function shrink(file) {
     return new Promise((res, rej) => {
@@ -236,6 +225,7 @@
   });
   $('#launchForm').addEventListener('submit', (e) => {
     e.preventDefault();
+    if (!LAUNCH_LIVE) return setErr('Real launches open soon. Your coin will be created on-chain from your own wallet, so nothing launches until that goes live.');
     const b = BIZ.find((x) => x.id === $('#lfBiz').value);
     const name = $('#lfName').value.trim().replace(/\s+/g, ' '), tick = $('#lfTick').value.trim();
     if (!b) return setErr('Pick a business to launch.');
@@ -328,7 +318,7 @@
   });
 
   let lastStars = 0;
-  const heat = () => Math.min(6, Math.max(1, Math.ceil(coins().reduce((a, b) => a + b.coin.vol, 0) / 70)));
+  const heat = () => coins().length ? Math.min(6, Math.max(1, Math.ceil(coins().reduce((a, b) => a + b.coin.vol, 0) / 70))) : 0;
   function hud(bump) {
     const total = coins().reduce((a, b) => a + b.coin.cap, 0);
     const cash = $('#hudCash'); cash.textContent = '$' + Math.round(total).toLocaleString('en-US');
