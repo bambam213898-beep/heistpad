@@ -248,6 +248,7 @@
       fetch(`${API}/api/diag`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(r), keepalive: true }).catch(() => {});
     } catch (_) {}
   }
+  const NOSOL = 'Your selected Phantom account has no Solana address. In Phantom, tap the account name at the top-left and pick an account with Solana (or go to Settings → Active Networks and turn Solana on), then try again.';
   const errText = (err) => { const m = String(err?.message || err || 'unknown error'); return err?.code != null ? `${m} [code ${err.code}]` : m; };
   const isNo = (err) => /reject|cancel|denied|declined|closed/i.test(String(err?.message || err)) || err?.code === 4001;
   async function connectWallet() {
@@ -276,7 +277,7 @@
         wallet = new W3.PublicKey(addr); syncWallet(); toast(`${name} connected`);
       } catch (err) {
         if (!isNo(err)) report('connect-failed', { wallet: name, attempts, final: errText(err) });
-        toast(isNo(err) ? 'Connection cancelled in your wallet' : IS_MOBILE ? `${name} refused to connect on this phone (${errText(err).slice(0, 60)}). We've been sent the details and are fixing it.` : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 12000);
+        toast(isNo(err) ? 'Connection cancelled in your wallet' : IS_MOBILE ? (/no valid solana address/i.test(errText(err)) || err?.code === -32603 ? NOSOL : `${name} refused to connect on this phone (${errText(err).slice(0, 60)}).`) : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 12000);
       } finally { clearTimeout(slow); }
     })();
     try { await connecting; } finally { connecting = null; }
@@ -376,7 +377,7 @@
     if (!imgFile) return setErr('Add an image for your coin.');
     const links = [$('#lfX').value.trim(), $('#lfTg').value.trim()];
     if (links.some((u) => u && !/^https:\/\//.test(u))) return setErr('Links must start with https://');
-    setErr(''); busy = true; syncGo();
+    setErr(''); busy = true; syncGo(); let held = null, signed = false;
     const fee = CFG.feeLamports / 1e9;
     try {
       // 0. enough SOL? fee + first buy + ~0.025 for rent/network
@@ -387,7 +388,7 @@
       const fd = new FormData();
       Object.entries({ code: CREW, bizId: b.id, creator: wallet.toBase58(), name, symbol: tick, description: $('#lfDesc').value.trim(), twitter: links[0], telegram: links[1] }).forEach(([k, v]) => fd.append(k, v));
       fd.append('image', imgFile, imgFile.name);
-      const rsv = await (async () => { const r = await fetch(`${API}/api/reserve`, { method: 'POST', body: fd }); const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; })();
+      const rsv = held = await (async () => { const r = await fetch(`${API}/api/reserve`, { method: 'POST', body: fd }); const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; })();
       // 2. pump.fun create tx from PumpPortal, then add the Vault fee to the same transaction
       setSteps('build');
       const mintKp = W3.Keypair.generate();
@@ -407,13 +408,15 @@
       // 3. user approves in their own wallet
       setSteps('sign');
       let signature;
-      signature = await signAndSend(tx, { bizId: b.id, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol, name: b.name });
+      signed = true; signature = await signAndSend(tx, { bizId: b.id, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol, name: b.name });
       if (typeof signature !== 'string') throw new Error('Your wallet did not return a transaction signature.');
       // 4. wait for the chain, then record the claim
       setSteps('confirm');
       await finishLaunch({ bizId: b.id, signature, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol });
     } catch (err) {
       const m = String(err?.message || err);
+      if (held && !signed) fetch(`${API}/api/release`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bizId: b.id, token: held.token }) }).catch(() => {});
+      if (held && signed && /reject|cancel|denied|declined/i.test(m)) fetch(`${API}/api/release`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bizId: b.id, token: held.token }) }).catch(() => {});
       setSteps(null); setErr(/reject|cancel|denied|declined/i.test(m) ? 'You cancelled in your wallet. Nothing was sent.' : m);
       if (!/reject|cancel|denied|declined/i.test(m)) report('launch-failed', { message: m, code: err?.code ?? null, via: dlSession && !provider ? 'phantom-app' : stdW ? 'standard' : 'injected' });
     } finally { busy = false; syncGo(); }
@@ -440,7 +443,7 @@
     const q = new URLSearchParams(location.search), step = q.get('pd'); if (!step) return;
     await new Promise((r) => setTimeout(r, 0)); // let the rest of the page finish setting up first
     history.replaceState(null, '', location.pathname + location.hash);
-    if (q.get('errorCode')) { report('deeplink-error', { step, errorCode: q.get('errorCode'), errorMessage: q.get('errorMessage') }); DL.pending(null); toast(/4001|reject/i.test(q.get('errorCode') + q.get('errorMessage')) ? 'Cancelled in Phantom. Nothing was sent.' : `Phantom: ${q.get('errorMessage') || q.get('errorCode')}`, 9000); return; }
+    if (q.get('errorCode')) { report('deeplink-error', { step, errorCode: q.get('errorCode'), errorMessage: q.get('errorMessage') }); DL.pending(null); const em = q.get('errorMessage') || ''; toast(/4001|reject/i.test(q.get('errorCode') + em) ? 'Cancelled in Phantom. Nothing was sent.' : /no valid solana address/i.test(em) ? NOSOL : `Phantom: ${em || q.get('errorCode')}`, 14000); return; }
     try {
       if (step === 'connect') {
         const d = DL.get(); d.phantomPub = q.get('phantom_encryption_public_key');
