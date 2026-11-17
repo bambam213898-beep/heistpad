@@ -276,7 +276,7 @@
         wallet = new W3.PublicKey(addr); syncWallet(); toast(`${name} connected`);
       } catch (err) {
         if (!isNo(err)) report('connect-failed', { wallet: name, attempts, final: errText(err) });
-        toast(isNo(err) ? 'Connection cancelled in your wallet' : IS_MOBILE ? `${name}'s in-app browser refused (${errText(err).slice(0, 80)}). Open heistpad.live in Safari or Chrome and tap Connect: it will use the ${name} app instead.` : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 12000);
+        toast(isNo(err) ? 'Connection cancelled in your wallet' : IS_MOBILE ? `${name} refused to connect on this phone (${errText(err).slice(0, 60)}). We've been sent the details and are fixing it.` : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 12000);
       } finally { clearTimeout(slow); }
     })();
     try { await connecting; } finally { connecting = null; }
