@@ -497,3 +497,4 @@ body::before{background:radial-gradient(1000px 520px at 80% -15%,rgba(255,61,139
 .nw-list{margin:0;padding-left:18px;display:grid;gap:8px;color:var(--mut);font-size:14px}
 .nw-list b{color:var(--txt)}
 .nw-row{display:flex;gap:10px;flex-wrap:wrap}.nw-row .btn{flex:1}
+.toast{max-width:min(560px,calc(100vw - 32px));text-align:center;line-height:1.35}

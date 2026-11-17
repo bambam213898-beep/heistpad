@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="styles.css?v=16" rel="stylesheet">
+<link href="styles.css?v=17" rel="stylesheet">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <meta name="theme-color" content="#0c0913">
@@ -290,6 +290,13 @@
 
 <div class="toast" id="toast" role="status"></div>
 
+<script>
+  window.addEventListener('error', (e) => {
+    if (!/heistpad\.live|localhost/.test(e.filename || '')) return;
+    const el = document.getElementById('toast'); if (!el) return;
+    el.textContent = 'Site error: ' + e.message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 8000);
+  });
+</script>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.0/lib/index.iife.min.js"></script>
 <script type="module">import { Buffer } from "https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm"; window.Buffer = window.Buffer || Buffer;</script>
@@ -297,6 +304,6 @@
   // Where the Heistpad API lives. Local dev talks to wrangler on :8787.
   window.HEIST_API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://heistpad-api.heistpad-api.workers.dev';
 </script>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>

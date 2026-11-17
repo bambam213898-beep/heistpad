@@ -44,7 +44,7 @@
   const regionName = (rid) => REGIONS.find((r) => r.id === rid).name;
   const coins = () => BIZ.filter((b) => b.coin);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const toast = (msg) => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 1600); };
+  const toast = (msg, ms = 2200) => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); };
   const avatar = (c) => c.img ? `<div class="av" style="background-image:url(${c.img})"></div>` : `<div class="av" style="background:${c.color}">${esc(c.tick[0])}</div>`;
 
   document.addEventListener('click', (e) => {
@@ -194,8 +194,20 @@
       if (/Android|iPhone|iPad/i.test(navigator.userAgent)) { location.href = `https://phantom.app/ul/browse/${encodeURIComponent(location.href)}?ref=${encodeURIComponent(location.origin)}`; return; }
       $('#noWallet').hidden = false; return;
     }
-    try { const r = await provider.connect(); wallet = new W3.PublicKey((r?.publicKey || provider.publicKey).toString()); syncWallet(); toast('Wallet connected'); }
-    catch (_) { toast('Wallet connection cancelled'); }
+    const name = provider.isPhantom ? 'Phantom' : provider.isSolflare ? 'Solflare' : provider.isBackpack ? 'Backpack' : 'your wallet';
+    toast(`Opening ${name}… approve the pop-up`);
+    console.info('[heistpad] connecting via', name);
+    const slow = setTimeout(() => toast(`${name} hasn't answered. Click the ${name} icon in Chrome's toolbar: unlock it or find the request (the pop-up can open behind this window).`, 9000), 6000);
+    try {
+      const r = await provider.connect();
+      const pk = r?.publicKey || provider.publicKey;
+      if (!pk) throw new Error(`${name} connected but didn't share an address`);
+      wallet = new W3.PublicKey(pk.toString()); syncWallet(); toast(`${name} connected`);
+    } catch (err) {
+      const m = String(err?.message || err || '');
+      console.warn('[heistpad] connect failed:', err);
+      toast(/reject|cancel|denied|declined|closed/i.test(m) ? 'Connection cancelled in your wallet' : `Couldn't connect: ${m.slice(0, 120) || 'unknown error'}`, 7000);
+    } finally { clearTimeout(slow); }
   }
   $('#walletBtn').addEventListener('click', async () => {
     if (!wallet) return connectWallet();
