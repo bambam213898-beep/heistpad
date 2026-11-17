@@ -188,34 +188,45 @@
     BIZ.forEach((b) => { if (b.coin) b.coin.mine = !!wallet && b.coin.creator === wallet.toBase58(); });
     syncGo(); renderAll();
   }
+  const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  const IN_WALLET_APP = /Phantom|Solflare|Backpack/i.test(navigator.userAgent);
+  let connecting = null; // one connection request at a time (phone wallets reject overlapping requests)
+  // phone wallets inject their provider a moment after the page loads
+  async function waitProvider(ms = 2500) { const t0 = Date.now(); let p; while (!(p = getProvider()) && Date.now() - t0 < ms) await new Promise((r) => setTimeout(r, 150)); return p; }
   async function connectWallet() {
-    provider = getProvider();
-    if (!provider) {
-      if (/Android|iPhone|iPad/i.test(navigator.userAgent)) { location.href = `https://phantom.app/ul/browse/${encodeURIComponent(location.href)}?ref=${encodeURIComponent(location.origin)}`; return; }
-      $('#noWallet').hidden = false; return;
-    }
-    const name = provider.isPhantom ? 'Phantom' : provider.isSolflare ? 'Solflare' : provider.isBackpack ? 'Backpack' : 'your wallet';
-    toast(`Opening ${name}… approve the pop-up`);
-    console.info('[heistpad] connecting via', name);
-    const slow = setTimeout(() => toast(`${name} hasn't answered. Click the ${name} icon in Chrome's toolbar: unlock it or find the request (the pop-up can open behind this window).`, 9000), 6000);
-    try {
-      const r = await provider.connect();
-      const pk = r?.publicKey || provider.publicKey;
-      if (!pk) throw new Error(`${name} connected but didn't share an address`);
-      wallet = new W3.PublicKey(pk.toString()); syncWallet(); toast(`${name} connected`);
-    } catch (err) {
-      const m = String(err?.message || err || '');
-      console.warn('[heistpad] connect failed:', err);
-      toast(/reject|cancel|denied|declined|closed/i.test(m) ? 'Connection cancelled in your wallet' : `Couldn't connect: ${m.slice(0, 120) || 'unknown error'}`, 7000);
-    } finally { clearTimeout(slow); }
+    if (connecting) return connecting;
+    connecting = (async () => {
+      provider = getProvider() || (IS_MOBILE || IN_WALLET_APP ? await waitProvider() : null);
+      if (!provider) { $('#noWallet').hidden = false; return; }
+      const name = provider.isPhantom ? 'Phantom' : provider.isSolflare ? 'Solflare' : provider.isBackpack ? 'Backpack' : 'your wallet';
+      toast(`Opening ${name}… approve the request`);
+      console.info('[heistpad] connecting via', name, IS_MOBILE ? '(mobile)' : '');
+      const hint = IS_MOBILE ? `${name} hasn't answered. Check for the ${name} prompt, or close and reopen heistpad.live in ${name}'s browser.` : `${name} hasn't answered. Click the ${name} icon in Chrome's toolbar: unlock it or find the request (the pop-up can open behind this window).`;
+      const slow = setTimeout(() => toast(hint, 9000), 6000);
+      const attempt = async () => { const r = await provider.connect(); const pk = r?.publicKey || provider.publicKey; if (!pk) throw new Error(`${name} connected but didn't share an address`); return pk; };
+      try {
+        let pk;
+        try { pk = await attempt(); }
+        catch (err) { // phone wallets sometimes fail the first request while they finish loading; retry once unless the user said no
+          if (/reject|cancel|denied|declined|closed/i.test(String(err?.message || err))) throw err;
+          await new Promise((r) => setTimeout(r, 700)); pk = await attempt();
+        }
+        wallet = new W3.PublicKey(pk.toString()); syncWallet(); toast(`${name} connected`);
+      } catch (err) {
+        const m = String(err?.message || err || '');
+        console.warn('[heistpad] connect failed:', err);
+        toast(/reject|cancel|denied|declined|closed/i.test(m) ? 'Connection cancelled in your wallet' : `Couldn't connect (${name}): ${m.slice(0, 120) || 'unknown error'}. Close and reopen the page, then try again.`, 9000);
+      } finally { clearTimeout(slow); }
+    })();
+    try { await connecting; } finally { connecting = null; }
   }
   $('#walletBtn').addEventListener('click', async () => {
     if (!wallet) return connectWallet();
     try { await provider?.disconnect?.(); } catch (_) {}
     wallet = null; syncWallet(); toast('Wallet disconnected');
   });
-  setTimeout(async () => { // quietly reconnect a wallet that already trusts this site
-    const p = getProvider(); if (!p) return;
+  if (!IS_MOBILE && !IN_WALLET_APP) setTimeout(async () => { // quietly reconnect a trusted wallet (desktop only: phone wallets reject overlapping requests)
+    const p = getProvider(); if (!p || connecting || wallet) return;
     try { const r = await p.connect({ onlyIfTrusted: true }); provider = p; wallet = new W3.PublicKey((r?.publicKey || p.publicKey).toString()); syncWallet(); } catch (_) {}
   }, 500);
   const CREW = (() => { try { const c = new URLSearchParams(location.search).get('crew'); if (c) sessionStorage.setItem('hp.crew', c); return c || sessionStorage.getItem('hp.crew') || ''; } catch (_) { return ''; } })();
@@ -520,6 +531,9 @@
   const nw = document.getElementById('noWallet'); if (!nw) return;
   nw.addEventListener('click', (e) => {
     if (e.target === nw || e.target.closest('[data-close-nw]')) nw.hidden = true;
+    const op = e.target.closest('[data-open]');
+    if (op) { e.preventDefault(); const u = encodeURIComponent(location.href), ref = encodeURIComponent(location.origin);
+      location.href = op.dataset.open === 'solflare' ? `https://solflare.com/ul/v1/browse/${u}?ref=${ref}` : `https://phantom.app/ul/browse/${u}?ref=${ref}`; return; }
     if (e.target.closest('[data-copy-link]')) navigator.clipboard?.writeText(location.href).then(() => { e.target.textContent = 'Link copied ✓'; });
   });
 })();
