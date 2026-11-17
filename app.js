@@ -2,7 +2,6 @@
 (() => {
   const TTWO_MINT = 'TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo';
   const VI_DATE = Date.parse('2026-11-19T00:00:00-05:00');
-  const VAULT_TTWO = 0; // fills once real launches start
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -29,9 +28,12 @@
   /* ---------- demo coins ---------- */
   const PALETTE = ['#ff3d8b', '#ffc83d', '#2de2c8', '#9b7bff', '#ff8a3d', '#3ee08f', '#ff6a5c'];
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const caOf = () => Array.from({ length: 44 }, () => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[(rnd() * 58) | 0]).join('');
   // No premade coins: every business starts open. Real coins arrive from user launches.
-  const LAUNCH_LIVE = false; // flips on when on-chain launching is wired up
+  // Real launches: coins are created on pump.fun from the user's wallet; the Heistpad API tracks which business each coin runs.
+  const API = window.HEIST_API, W3 = window.solanaWeb3;
+  let CFG = { live: false, vault: null, feeLamports: 20_000_000 };
+  const hashColor = (s) => PALETTE[[...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) % PALETTE.length];
+  const pumpUrl = (mint) => `https://pump.fun/coin/${mint}`;
   const now = Date.now();
 
   /* ---------- helpers ---------- */
@@ -78,8 +80,9 @@
         <div class="c-top">${avatar(b.coin)}<div><h4>${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</h4><small>$${esc(b.coin.tick)}</small></div><span class="c-age">${ago(b.coin.born)}</span></div>
         <div class="c-biz"><b>${esc(b.name)}</b> · ${regionName(b.rid)}</div>
         <div class="c-mid"><span class="c-cap">${fmt$(b.coin.cap)}</span>${stars(b.coin.vol)}</div>
-        <div class="bar"><i style="width:${Math.max(6, (b.coin.cap / max) * 100)}%"></i></div>
-        <div class="c-bot"><button class="btn pink" data-buy="${b.id}">Buy</button><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>
+        <div class="bar" title="Bonding curve progress"><i style="width:${Math.max(3, (b.coin.progress || 0) * 100)}%"></i></div>
+        <div class="prog">${b.coin.complete ? 'Graduated <span class="grad">LIVE ON DEX</span>' : `${((b.coin.progress || 0) * 100).toFixed(1)}% to graduation`}</div>
+        <div class="c-bot"><a class="btn pink" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy on pump.fun</a><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>
       </article>`).join('');
 
     const emptyLi = '<li class="empty-li"><span>Nobody yet. Could be you.<small>Launch a coin to take the top spot</small></span><b>—</b></li>';
@@ -97,12 +100,10 @@
     sortBy = b.dataset.sort; $$('#sortTabs button').forEach((x) => x.classList.toggle('on', x === b)); renderAll();
   });
   document.addEventListener('click', (e) => {
-    const buy = e.target.closest('[data-buy]');
-    if (buy) { const b = BIZ.find((x) => x.id === buy.dataset.buy); toast(`Demo: buying $${b.coin.tick} opens a swap at launch`); return; }
     const reg = e.target.closest('[data-region]');
     if (reg) { $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); flyRegion(reg.dataset.region); return; }
     const card = e.target.closest('.card[data-biz]');
-    if (card && !e.target.closest('button')) { $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); focusBiz(card.dataset.biz); }
+    if (card && !e.target.closest('button,a')) { $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); focusBiz(card.dataset.biz); }
   });
 
   /* ---------- map ---------- */
@@ -160,7 +161,7 @@
     card.innerHTML = `<button class="x" aria-label="Close">×</button><div class="mc-type">${esc(b.type)}</div><h4>${esc(b.name)}</h4><div class="mc-reg">${regionName(b.rid)}</div>` + (b.coin
       ? `<div class="mc-row">${avatar(b.coin)}<div style="flex:1"><div style="font-weight:800">${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</div><small style="color:var(--mut);font-family:JetBrains Mono">$${esc(b.coin.tick)}</small></div>${stars(b.coin.vol)}</div>
          <div class="mc-row"><span style="color:var(--mut)">Market cap</span><b>${fmt$(b.coin.cap)}</b></div>
-         <div class="c-bot"><button class="btn pink" data-buy="${b.id}">Buy $${esc(b.coin.tick)}</button><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>`
+         <div class="c-bot"><a class="btn pink" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy $${esc(b.coin.tick)}</a><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>`
       : `<p style="color:var(--mut);margin:6px 0 12px;font-size:14px">This job is still open. First crew to launch its coin runs it.</p><button class="btn pink wide" data-launch="${b.id}">Pull this job →</button>`);
     card.querySelector('.x').onclick = () => { card.hidden = true; };
   }
@@ -175,13 +176,46 @@
   $('#regionFilters').innerHTML = `<button class="on" data-r="all">All Florida</button>` + REGIONS.map((r) => `<button data-r="${r.id}">${r.name}</button>`).join('');
   $('#regionFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (b) flyRegion(b.dataset.r); });
 
-  /* ---------- launch flow (demo) ---------- */
+  /* ---------- wallet ---------- */
+  let wallet = null, provider = null, busy = false;
+  const getProvider = () => window.phantom?.solana || window.solflare || window.backpack?.solana || window.solana || null;
+  function syncGo() {
+    const g = $('#lfGo'); if (!g) return; g.disabled = busy;
+    g.innerHTML = busy ? 'Working… <span>⏳</span>' : !wallet ? 'Connect wallet to launch <span>→</span>' : !CFG.live ? 'Launches open soon <span>⏳</span>' : `Launch it · ${CFG.feeLamports / 1e9} SOL fee <span>→</span>`;
+  }
+  function syncWallet() {
+    $('#walletBtn').classList.toggle('on', !!wallet); $('#walletTxt').textContent = wallet ? shortCa(wallet.toBase58()) : 'Connect wallet';
+    BIZ.forEach((b) => { if (b.coin) b.coin.mine = !!wallet && b.coin.creator === wallet.toBase58(); });
+    syncGo(); renderAll();
+  }
+  async function connectWallet() {
+    provider = getProvider();
+    if (!provider) {
+      if (/Android|iPhone|iPad/i.test(navigator.userAgent)) { location.href = `https://phantom.app/ul/browse/${encodeURIComponent(location.href)}?ref=${encodeURIComponent(location.origin)}`; return; }
+      toast('Install Phantom or Solflare to launch'); window.open('https://phantom.app/download', '_blank', 'noopener'); return;
+    }
+    try { const r = await provider.connect(); wallet = new W3.PublicKey((r?.publicKey || provider.publicKey).toString()); syncWallet(); toast('Wallet connected'); }
+    catch (_) { toast('Wallet connection cancelled'); }
+  }
+  $('#walletBtn').addEventListener('click', async () => {
+    if (!wallet) return connectWallet();
+    try { await provider?.disconnect?.(); } catch (_) {}
+    wallet = null; syncWallet(); toast('Wallet disconnected');
+  });
+  setTimeout(async () => { // quietly reconnect a wallet that already trusts this site
+    const p = getProvider(); if (!p) return;
+    try { const r = await p.connect({ onlyIfTrusted: true }); provider = p; wallet = new W3.PublicKey((r?.publicKey || p.publicKey).toString()); syncWallet(); } catch (_) {}
+  }, 500);
+  const CREW = (() => { try { const c = new URLSearchParams(location.search).get('crew'); if (c) sessionStorage.setItem('hp.crew', c); return c || sessionStorage.getItem('hp.crew') || ''; } catch (_) { return ''; } })();
+  fetch(`${API}/api/config?code=${encodeURIComponent(CREW)}`).then((r) => r.json()).then((c) => { CFG = { ...CFG, ...c }; $('#lfFee').textContent = `${CFG.feeLamports / 1e9} SOL`; syncGo(); loadVault(); }).catch(() => {});
+
+  /* ---------- launch flow ---------- */
   const modal = $('#launchModal');
-  let imgData = null;
+  let imgData = null, imgFile = null;
   const setErr = (msg) => { const e = $('#lfErr'); e.textContent = msg || ''; e.hidden = !msg; };
   function openLaunch(bizId) {
     const open = BIZ.filter((b) => !b.coin);
-    $('#launchForm').reset(); imgData = null; $('#lfImgTxt').textContent = 'Drop or pick an image (optional)'; setErr('');
+    $('#launchForm').reset(); imgData = null; imgFile = null; $('#lfImgTxt').textContent = "Pick your coin's image (required)"; setErr(''); setSteps(null); syncGo();
     if (!open.length) { toast('Every business on the map is taken'); return; }
     $('#lfBiz').innerHTML = REGIONS.map((r) => {
       const list = open.filter((b) => b.rid === r.id);
@@ -194,8 +228,6 @@
   }
   /* launches you make are saved in this browser so they survive a refresh */
   const STORE = 'heistpad.launches.v1';
-  const loadSaved = () => { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (_) { return []; } };
-  const saveLaunch = (rec) => { try { const all = loadSaved().filter((r) => r.bid !== rec.bid); all.push(rec); localStorage.setItem(STORE, JSON.stringify(all)); } catch (_) {} };
   try { localStorage.removeItem(STORE); } catch (_) {} // clear old demo launches
   // shrink uploads to a small square so they render fast and fit in storage
   function shrink(file) {
@@ -219,28 +251,88 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { modal.hidden = true; $('#passed').hidden = true; } });
   $('#lfTick').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
   $('#lfImg').addEventListener('change', async (e) => {
-    const f = e.target.files[0]; imgData = null; if (!f) return;
-    try { imgData = await shrink(f); $('#lfImgTxt').innerHTML = `<img src="${imgData}" alt="" class="lf-prev"> ${esc(f.name)}`; setErr(''); }
-    catch (err) { e.target.value = ''; $('#lfImgTxt').textContent = 'Drop or pick an image (optional)'; setErr(err.message); }
+    const f = e.target.files[0]; imgData = null; imgFile = null; if (!f) return;
+    if (f.size > 4 * 1024 * 1024) { e.target.value = ''; return setErr('Image must be under 4 MB'); }
+    try { imgData = await shrink(f); imgFile = f; $('#lfImgTxt').innerHTML = `<img src="${imgData}" alt="" class="lf-prev"> ${esc(f.name)}`; setErr(''); }
+    catch (err) { e.target.value = ''; $('#lfImgTxt').textContent = "Pick your coin's image (required)"; setErr(err.message); }
   });
-  $('#launchForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (!LAUNCH_LIVE) return setErr('Real launches open soon. Your coin will be created on-chain from your own wallet, so nothing launches until that goes live.');
+  const steps = ['upload', 'build', 'sign', 'confirm'];
+  function setSteps(cur) {
+    const ol = $('#lfSteps'); ol.hidden = !cur; if (!cur) return;
+    const i = steps.indexOf(cur); $$('#lfSteps li').forEach((li, k) => { li.className = k < i ? 'ok' : k === i ? 'now' : ''; });
+  }
+  async function rpcCall(method, params) {
+    const r = await fetch(`${API}/api/rpc`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ method, params }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Network error'); return j;
+  }
+  $('#launchForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); if (busy) return;
+    if (!wallet) { connectWallet(); return; }
+    if (!CFG.live) return setErr('Launches are not switched on yet. Check back soon.');
     const b = BIZ.find((x) => x.id === $('#lfBiz').value);
     const name = $('#lfName').value.trim().replace(/\s+/g, ' '), tick = $('#lfTick').value.trim();
+    const devBuy = Math.max(0, Math.min(10, parseFloat($('#lfBuy').value) || 0));
     if (!b) return setErr('Pick a business to launch.');
-    if (b.coin) return setErr(`${b.name} was just taken by $${b.coin.tick}. Pick another business.`);
+    if (b.coin) return setErr(`${b.name} already has a coin ($${b.coin.tick}). Pick another business.`);
     if (name.length < 2) return setErr('Coin name needs at least 2 characters.');
     if (tick.length < 2) return setErr('Ticker needs 2–10 letters or numbers.');
     if (coins().some((x) => x.coin.tick.toUpperCase() === tick)) return setErr(`$${tick} is already on the map. Try another ticker.`);
-    b.coin = { name, tick, cap: 1500, vol: 3, ca: caOf(), color: PALETTE[(Math.random() * PALETTE.length) | 0], born: Date.now(), img: imgData, mine: true };
-    saveLaunch({ bid: b.id, name, tick, ca: b.coin.ca, color: b.coin.color, born: b.coin.born, img: imgData });
-    setErr(''); modal.hidden = true;
-    sortBy = 'new'; $$('#sortTabs button').forEach((x) => x.classList.toggle('on', x.dataset.sort === 'new'));
-    renderAll();
-    $('#psTxt').textContent = `${b.name} is yours · $${b.coin.tick} is live · + RESPECT`;
-    $('#passed').hidden = false; sfx.passed(); flashStars(); hud();
-    map?.flyTo({ center: [b.lng, b.lat], zoom: 12.5 });
+    if (!imgFile) return setErr('Add an image for your coin.');
+    const links = [$('#lfX').value.trim(), $('#lfTg').value.trim()];
+    if (links.some((u) => u && !/^https:\/\//.test(u))) return setErr('Links must start with https://');
+    setErr(''); busy = true; syncGo();
+    const fee = CFG.feeLamports / 1e9;
+    try {
+      // 0. enough SOL? fee + first buy + ~0.025 for rent/network
+      const need = fee + devBuy + 0.025, bal = (await rpcCall('getBalance', [wallet.toBase58()])).value / 1e9;
+      if (bal < need) throw new Error(`You need about ${need.toFixed(3)} SOL in your wallet (you have ${bal.toFixed(3)}).`);
+      // 1. upload art + hold the business
+      setSteps('upload');
+      const fd = new FormData();
+      Object.entries({ code: CREW, bizId: b.id, creator: wallet.toBase58(), name, symbol: tick, description: $('#lfDesc').value.trim(), twitter: links[0], telegram: links[1] }).forEach(([k, v]) => fd.append(k, v));
+      fd.append('image', imgFile, imgFile.name);
+      const rsv = await (async () => { const r = await fetch(`${API}/api/reserve`, { method: 'POST', body: fd }); const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; })();
+      // 2. pump.fun create tx from PumpPortal, then add the Vault fee to the same transaction
+      setSteps('build');
+      const mintKp = W3.Keypair.generate();
+      const pr = await fetch('https://pumpportal.fun/api/trade-local', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publicKey: wallet.toBase58(), action: 'create', tokenMetadata: { name: rsv.name, symbol: rsv.symbol, uri: rsv.uri }, mint: mintKp.publicKey.toBase58(), denominatedInSol: 'true', amount: devBuy, slippage: 10, priorityFee: 0.0005, pool: 'pump' }) });
+      if (pr.status !== 200) throw new Error(`pump.fun didn't accept the launch (${pr.status} ${pr.statusText}). Try again.`);
+      const tx0 = W3.VersionedTransaction.deserialize(new Uint8Array(await pr.arrayBuffer()));
+      const luts = await Promise.all(tx0.message.addressTableLookups.map(async (l) => {
+        const info = await rpcCall('getAddressLookupTable', [l.accountKey.toBase58()]);
+        const data = Uint8Array.from(atob(info.value.data[0]), (c) => c.charCodeAt(0));
+        return new W3.AddressLookupTableAccount({ key: l.accountKey, state: W3.AddressLookupTableAccount.deserialize(data) });
+      }));
+      const msg = W3.TransactionMessage.decompile(tx0.message, { addressLookupTableAccounts: luts });
+      if (msg.payerKey.toBase58() !== wallet.toBase58()) throw new Error('Unexpected transaction from pump.fun. Nothing was sent.');
+      msg.instructions.push(W3.SystemProgram.transfer({ fromPubkey: wallet, toPubkey: new W3.PublicKey(CFG.vault), lamports: CFG.feeLamports }));
+      const tx = new W3.VersionedTransaction(msg.compileToV0Message(luts));
+      tx.sign([mintKp]);
+      // 3. user approves in their own wallet
+      setSteps('sign');
+      let signature;
+      if (provider.signAndSendTransaction) { const r = await provider.signAndSendTransaction(tx); signature = typeof r === 'string' ? r : r.signature; }
+      else { const signed = await provider.signTransaction(tx); const raw = btoa(String.fromCharCode(...signed.serialize())); signature = await rpcCall('sendTransaction', [raw, { encoding: 'base64', skipPreflight: false }]); }
+      if (typeof signature !== 'string') throw new Error('Your wallet did not return a transaction signature.');
+      // 4. wait for the chain, then record the claim
+      setSteps('confirm');
+      let ok = null;
+      for (let i = 0; i < 40 && !ok; i++) {
+        await new Promise((r) => setTimeout(r, i ? 3000 : 2000));
+        const r = await fetch(`${API}/api/confirm`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bizId: b.id, signature, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token }) });
+        const j = await r.json(); if (r.status === 202) continue; if (!r.ok) throw new Error(j.error); ok = j;
+      }
+      if (!ok) throw new Error(`Still confirming. Your transaction: ${signature.slice(0, 8)}… Refresh in a minute.`);
+      $$('#lfSteps li').forEach((li) => (li.className = 'ok'));
+      await loadCoins();
+      modal.hidden = true; setSteps(null);
+      $('#psTxt').textContent = `${b.name} is yours · $${rsv.symbol} is live on pump.fun · + RESPECT`;
+      $('#passed').hidden = false; sfx.passed(); flashStars(); hud();
+      map?.flyTo({ center: [b.lng, b.lat], zoom: 12.5 });
+    } catch (err) {
+      const m = String(err?.message || err);
+      setSteps(null); setErr(/reject|cancel|denied|declined/i.test(m) ? 'You cancelled in your wallet. Nothing was sent.' : m);
+    } finally { busy = false; syncGo(); }
   });
   $('[data-close-passed]').onclick = () => { $('#passed').hidden = true; $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
 
@@ -252,14 +344,20 @@
       const px = j.usdPrice, ch = j.priceChange24h;
       $('#ttwoPx').textContent = `$${px.toFixed(2)}`;
       const c = $('#ttwoChg'); c.textContent = `${ch >= 0 ? '+' : ''}${ch.toFixed(2)}% 24h`; c.className = `chg ${ch >= 0 ? 'up' : 'dn'}`;
-      $('#vHold').textContent = `${VAULT_TTWO.toFixed(2)} TTWO`;
-      $('#vVal').textContent = fmt$(VAULT_TTWO * px);
-      $('#stVault').textContent = fmt$(VAULT_TTWO * px);
+      await loadVault();
       $('#vLiq').textContent = fmt$(j.liquidity || 0);
       $('#vMcap').textContent = j.stockData?.mcap ? fmt$(j.stockData.mcap) : '—';
     } catch (_) {
-      $('#ttwoPx').textContent = 'price offline'; $('#vHold').textContent = `${VAULT_TTWO.toFixed(2)} TTWO`; $('#stVault').textContent = `${VAULT_TTWO} TTWO`;
+      $('#ttwoPx').textContent = 'price offline'; await loadVault();
     }
+  }
+  let solUsd = 0;
+  async function loadVault() {
+    if (!CFG.vault) { $('#vHold').textContent = 'opens at launch'; $('#vVal').textContent = '$0'; $('#stVault').textContent = '$0'; return; }
+    try {
+      const sol = (await rpcCall('getBalance', [CFG.vault])).value / 1e9;
+      $('#vHold').textContent = `${sol.toFixed(3)} SOL`; $('#vVal').textContent = fmt$(sol * solUsd); $('#stVault').textContent = fmt$(sol * solUsd);
+    } catch (_) { $('#vHold').textContent = '—'; }
   }
   loadTTWO(); setInterval(loadTTWO, 30000);
 
@@ -318,7 +416,7 @@
   });
 
   let lastStars = 0;
-  const heat = () => coins().length ? Math.min(6, Math.max(1, Math.ceil(coins().reduce((a, b) => a + b.coin.vol, 0) / 70))) : 0;
+  const heat = () => { const cs = coins().length; if (!cs) return 0; const recent = events.filter((t) => Date.now() - t < 10 * 60 * 1000).length; return Math.min(6, 1 + Math.floor(recent / 4) + (cs >= 10 ? 1 : 0)); };
   function hud(bump) {
     const total = coins().reduce((a, b) => a + b.coin.cap, 0);
     const cash = $('#hudCash'); cash.textContent = '$' + Math.round(total).toLocaleString('en-US');
@@ -336,24 +434,37 @@
     clearTimeout(areaT); areaT = setTimeout(() => a.classList.remove('show'), 3200);
   }
 
-  const NAMES = ['vice_whale', 'gatorboi', 'lucia.sol', 'keysdegen', 'tampa_tony', 'cocoa_k', 'nightowl', 'pcb_pete', 'dade_dev', 'stackz'];
-  function feedTick() {
-    const cs = coins(); const b = cs[(Math.random() * cs.length) | 0]; if (!b) return;
-    const buy = Math.random() < 0.68, sol = (0.05 + Math.random() * (buy ? 1.6 : 0.9)).toFixed(2);
-    b.coin.cap = Math.max(900, b.coin.cap * (buy ? 1.012 + Math.random() * 0.03 : 0.992 - Math.random() * 0.02));
-    b.coin.vol += buy ? 1 : 0.4;
+  // live activity: each poll compares a coin's SOL in its bonding curve with the last poll
+  const events = [];
+  function pushEvent(b, buy, sol) {
+    events.push(Date.now());
     const ev = document.createElement('div'); ev.className = 'ev';
-    ev.innerHTML = `${avatar(b.coin)}<div><span>${NAMES[(Math.random() * NAMES.length) | 0]}</span> <b class="${buy ? 'buy' : 'sell'}">${buy ? 'bought' : 'sold'} ${sol} SOL</b><br><b>$${esc(b.coin.tick)}</b> <span>· ${esc(b.name)}</span></div>`;
+    ev.innerHTML = `${avatar(b.coin)}<div><span>someone</span> <b class="${buy ? 'buy' : 'sell'}">${buy ? 'bought' : 'sold'} ${sol.toFixed(sol < 1 ? 3 : 2)} SOL</b><br><b>$${esc(b.coin.tick)}</b> <span>· ${esc(b.name)}</span></div>`;
     const f = $('#feed'); f.prepend(ev);
     while (f.children.length > 3) f.removeChild(f.lastElementChild);
-    setTimeout(() => ev.isConnected && f.removeChild(ev), 5200);
+    setTimeout(() => ev.isConnected && f.removeChild(ev), 6000);
     const el = mkEls.get(b.id); if (el) { el.classList.remove('ping'); void el.offsetWidth; el.classList.add('ping'); }
     const card = document.querySelector(`.card[data-biz="${b.id}"]`);
-    if (card) { card.querySelector('.c-cap').textContent = fmt$(b.coin.cap); card.classList.remove('hit'); void card.offsetWidth; card.classList.add('hit'); }
-    sizeMarkers(); hud(true); (buy ? sfx.buy : sfx.sell)();
+    if (card) { card.classList.remove('hit'); void card.offsetWidth; card.classList.add('hit'); }
+    (buy ? sfx.buy : sfx.sell)();
   }
-  (function loop() { setTimeout(() => { if (!document.hidden) feedTick(); loop(); }, 2600 + Math.random() * 3200); })();
-
+  const lastVSol = new Map(); let firstLoad = true;
+  async function loadCoins() {
+    try {
+      const r = await fetch(`${API}/api/coins`); if (!r.ok) throw 0; const d = await r.json();
+      solUsd = d.solUsd || solUsd;
+      const seen = new Set();
+      for (const c of d.coins) {
+        const b = BIZ.find((x) => x.id === c.bizId); if (!b) continue; seen.add(b.id);
+        const prev = b.coin, delta = lastVSol.has(c.mint) && c.vSol != null ? c.vSol - lastVSol.get(c.mint) : 0;
+        b.coin = { name: c.name || c.symbol, tick: c.symbol, cap: c.mcapUsd || 0, vol: (prev?.vol || 0) + Math.abs(delta) * 10 + (prev ? 0 : Math.min(40, (c.realSol || 0) * 4)), ca: c.mint, color: hashColor(c.mint), born: c.createdAt, img: c.image ? c.image.replace('https://ipfs.io/ipfs/', 'https://gateway.pinata.cloud/ipfs/') : null, progress: c.progress, complete: c.complete, creator: c.creator, mine: wallet && c.creator === wallet.toBase58() };
+        if (c.vSol != null) lastVSol.set(c.mint, c.vSol);
+        if (!firstLoad && Math.abs(delta) > 0.001) pushEvent(b, delta > 0, Math.abs(delta));
+      }
+      BIZ.forEach((b) => { if (b.coin && !seen.has(b.id)) b.coin = null; });
+      firstLoad = false; renderAll(); hud(true);
+    } catch (_) { /* API unreachable: keep what we have */ }
+  }
   // traffic: cars on the causeways + Overseas Hwy, boats in the bays, a news chopper over downtown
   const ROUTES = [
     ['car', 9, [[-80.205, 25.745], [-80.206, 25.80], [-80.201, 25.87], [-80.186, 25.95]]],
@@ -388,6 +499,7 @@
   }
 
   renderAll(); hud();
+  loadCoins(); setInterval(() => { if (!document.hidden) loadCoins(); }, 15000);
   // refresh ages
   setInterval(() => { if (sortBy) renderAll(); }, 60000);
 })();

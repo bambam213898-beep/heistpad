@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="styles.css?v=13" rel="stylesheet">
+<link href="styles.css?v=15" rel="stylesheet">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <meta name="theme-color" content="#0c0913">
@@ -33,6 +33,7 @@
   </nav>
   <button type="button" class="ca-chip" data-copy="CA_PLACEHOLDER" aria-label="Copy Heistpad contract address"><i>CA</i><code>launching soon</code></button>
   <button type="button" class="snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <button type="button" class="wallet-btn" id="walletBtn"><span class="wdot"></span><span id="walletTxt">Connect wallet</span></button>
   <button type="button" class="btn pink sm" data-launch>Pull a job</button>
 </header>
 
@@ -88,9 +89,9 @@
   <div class="vault-l">
     <p class="kicker gold-k">THE TWIST</p>
     <h2>The Vault holds the <em>real</em> publisher.</h2>
-    <p>Most launchpads keep the fees. Heistpad sweeps a cut of every launch and trade into one on-chain vault that buys <b>tokenized Take-Two ($TTWO)</b>, the publisher behind the year's biggest game drop. Each share token is backed 1:1 by a real Nasdaq share.</p>
+    <p>Most launchpads keep their fees. Every Heistpad launch sends a flat <b>0.02 SOL</b> straight into one public on-chain vault that stacks <b>tokenized Take-Two ($TTWO)</b>, the publisher behind the year's biggest game drop. Each share token is backed 1:1 by a real Nasdaq share.</p>
     <ul class="vault-pts">
-      <li><b>0.40%</b> of every trade, plus half of each launch fee, goes to the Vault</li>
+      <li><b>0.02 SOL</b> from every launch goes straight to the Vault, in the same transaction</li>
       <li><b>1%+ holders</b> get the Update Drop: airdrops of the official locations</li>
       <li><b>Public</b> vault wallet, anyone can audit it</li>
     </ul>
@@ -120,20 +121,20 @@
   <div class="sec-head"><div><p class="kicker gold-k">THE VAULT PLAN</p><h2>Where every fee goes</h2></div></div>
 
   <div class="split">
-    <div class="split-bar" role="img" aria-label="1% trade fee split: 0.40% Vault, 0.30% coin creator, 0.20% $HEIST buyback, 0.10% operations">
-      <i style="flex:40" class="s-v"></i><i style="flex:30" class="s-c"></i><i style="flex:20" class="s-b"></i><i style="flex:10" class="s-o"></i>
+    <div class="split-bar" role="img" aria-label="Launch fee: 100% to the Vault">
+      <i style="flex:100" class="s-v"></i>
     </div>
     <div class="split-key">
-      <div><i class="s-v"></i><b>0.40%</b><span>The Vault: buys tokenized $TTWO</span></div>
-      <div><i class="s-c"></i><b>0.30%</b><span>The coin's creator, paid every trade</span></div>
-      <div><i class="s-b"></i><b>0.20%</b><span>$HEIST buyback &amp; burn</span></div>
-      <div><i class="s-o"></i><b>0.10%</b><span>Ops: servers, audits, map data</span></div>
+      <div><i class="s-v"></i><b>0.02 SOL</b><span>Flat launch fee: 100% to the Vault</span></div>
+      <div><i class="s-c"></i><b>pump.fun</b><span>Every coin is a real pump.fun coin</span></div>
+      <div><i class="s-b"></i><b>Creator</b><span>Coin creators earn pump.fun creator rewards on trades</span></div>
+      <div><i class="s-o"></i><b>0%</b><span>Heistpad takes nothing else from trades</span></div>
     </div>
-    <p class="split-note">That's the <b>1% trade fee</b> on every coin. On top of it, each launch costs <b>0.02 SOL</b>, and half of that goes to the Vault too.</p>
+    <p class="split-note">You pay the <b>0.02 SOL launch fee</b>, Solana's small network/rent cost and whatever first buy you choose, all in one wallet approval. Trading happens on pump.fun, under pump.fun's fees.</p>
   </div>
 
   <div class="flow" aria-label="How money moves through the Vault">
-    <div><b>01</b><h4>Trades &amp; launches</h4><p>Fees collect in SOL, live on chain.</p></div>
+    <div><b>01</b><h4>Every launch</h4><p>0.02 SOL lands in the Vault wallet the moment a coin goes live.</p></div>
     <div><b>02</b><h4>Sunday buy</h4><p>Every Sunday at 8pm ET the Vault swaps its SOL for tokenized $TTWO. The tx is posted publicly.</p></div>
     <div><b>03</b><h4>Hold through launch</h4><p>The Vault doesn't sell $TTWO before the official map update. Every share stays on the books.</p></div>
     <div><b>04</b><h4>Pay the crews</h4><p>After the update, the Vault's growth funds weekly payouts, Vault Pass perks and the Update Drop.</p></div>
@@ -145,8 +146,8 @@
     <div><span class="u-ic">◎</span><h4>Vault Pass</h4><p>Hold a combined 1% or more across Heistpad coins and you get a Vault Pass: free launches, early access to new map areas and a vote on Vault calls.</p></div>
     <div><span class="u-ic">⚑</span><h4>Crew votes</h4><p>Vault Pass holders vote on which official locations unlock first, and whether the Vault keeps buying or starts paying out.</p></div>
     <div><span class="u-ic">⛁</span><h4>Proof of vault</h4><p>One public wallet. Live $TTWO balance on this page, and every buy and payout is linked, so anyone can audit it.</p></div>
-    <div><span class="u-ic">⇪</span><h4>Creator cut</h4><p>Whoever launched a coin earns 0.30% of every trade on it, forever. Run the biggest business on the map, earn the most.</p></div>
-    <div><span class="u-ic">♨</span><h4>$HEIST burn</h4><p>0.20% of all volume buys back and burns $HEIST, so the platform token shrinks as the map gets busier.</p></div>
+    <div><span class="u-ic">⇪</span><h4>Creator rewards</h4><p>Your coin lives on pump.fun, so you earn pump.fun's creator rewards on its trades. Run the biggest business on the map, earn the most.</p></div>
+    <div><span class="u-ic">⌂</span><h4>Own the spot</h4><p>One coin per business, ever. Launch first and that business is yours on the map for good. Your marker grows with your market cap.</p></div>
   </div>
 
   <h3 class="sub">Roadmap</h3>
@@ -233,7 +234,7 @@
 
 <footer class="foot">
   <img class="foot-wm" src="assets/brand/wordmark-1240.png" width="310" height="75" alt="Heistpad — every launch is a heist">
-  <p>Concept build with demo coins. Heistpad is not affiliated with, endorsed by or sponsored by Take-Two Interactive or Rockstar Games. $TTWO is a tokenized equity issued by Backpack Securities; price data from Jupiter. Nothing here is investment advice.</p>
+  <p>Coins launched here are created on pump.fun by their creators, from their own wallets. Heistpad is not affiliated with, endorsed by or sponsored by Take-Two Interactive or Rockstar Games. $TTWO is a tokenized equity issued by Backpack Securities; price data from Jupiter. Nothing here is investment advice.</p>
 </footer>
 
 <!-- launch modal -->
@@ -244,14 +245,21 @@
     <h3>Launch a coin</h3>
     <label>Business<select id="lfBiz" required></select></label>
     <div class="row2">
-      <label>Coin name<input id="lfName" maxlength="24" minlength="2" placeholder="Neon Palms" required autocomplete="off"></label>
+      <label>Coin name<input id="lfName" maxlength="32" minlength="2" placeholder="Neon Palms" required autocomplete="off"></label>
       <label>Ticker<input id="lfTick" maxlength="10" minlength="2" placeholder="NEON" required autocomplete="off" autocapitalize="characters"></label>
     </div>
-    <label class="file">Image<input id="lfImg" type="file" accept="image/*"><span id="lfImgTxt">Drop or pick an image (optional)</span></label>
+    <label class="file">Image<input id="lfImg" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><span id="lfImgTxt">Pick your coin's image (required)</span></label>
+    <label>Description <i class="opt">optional</i><textarea id="lfDesc" maxlength="400" rows="2" placeholder="What's the job?"></textarea></label>
+    <div class="row2">
+      <label>X link <i class="opt">optional</i><input id="lfX" type="url" placeholder="https://x.com/..." autocomplete="off"></label>
+      <label>Telegram <i class="opt">optional</i><input id="lfTg" type="url" placeholder="https://t.me/..." autocomplete="off"></label>
+    </div>
+    <label>Your first buy <i class="opt">optional, in SOL</i><input id="lfBuy" type="number" min="0" max="10" step="0.01" value="0" inputmode="decimal"></label>
     <p class="lf-err" id="lfErr" role="alert" hidden></p>
-    <div class="lf-fee"><span>Launch fee</span><b>0.02 SOL</b><small>50% goes straight to the Vault</small></div>
-    <p class="fine">You'll launch from your own wallet. Heistpad never holds your coins or keys.</p>
-    <button class="btn pink wide" type="submit">Launching soon <span>⏳</span></button>
+    <ol class="lf-steps" id="lfSteps" hidden><li data-s="upload">Uploading your art</li><li data-s="build">Building the transaction</li><li data-s="sign">Approve in your wallet</li><li data-s="confirm">Confirming on-chain</li></ol>
+    <div class="lf-fee"><span>Launch fee</span><b id="lfFee">0.02 SOL</b><small>100% goes to the Vault</small></div>
+    <p class="fine">Your coin is created on pump.fun from your own wallet. You'll also pay Solana's small network/rent cost (about 0.02 SOL) plus your first buy. Heistpad never holds your coins or keys.</p>
+    <button class="btn pink wide" type="submit" id="lfGo">Connect wallet to launch <span>→</span></button>
   </form>
 </div>
 
@@ -268,6 +276,12 @@
 <div class="toast" id="toast" role="status"></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="app.js?v=8"></script>
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.0/lib/index.iife.min.js"></script>
+<script type="module">import { Buffer } from "https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm"; window.Buffer = window.Buffer || Buffer;</script>
+<script>
+  // Where the Heistpad API lives. Local dev talks to wrangler on :8787.
+  window.HEIST_API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://heistpad-api.heistpad-api.workers.dev';
+</script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

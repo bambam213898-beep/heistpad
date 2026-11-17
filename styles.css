@@ -474,3 +474,21 @@ body::before{background:radial-gradient(1000px 520px at 80% -15%,rgba(255,61,139
 .empty .btn{margin-top:6px}
 .board li.empty-li::before{content:"–"}
 .board li.empty-li span{color:var(--mut)}
+
+/* ===== v14: real launches ===== */
+.wallet-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);font-weight:700;font-size:13px;white-space:nowrap}
+.wallet-btn .wdot{width:8px;height:8px;border-radius:50%;background:#5c5070}
+.wallet-btn.on{border-color:rgba(62,224,143,.5)}.wallet-btn.on .wdot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.sheet textarea{width:100%;padding:12px;border-radius:11px;border:1px solid var(--line);background:#0f0b18;color:var(--txt);font:500 15px Inter;resize:vertical}
+.sheet textarea:focus{outline:2px solid var(--pink);border-color:transparent}
+.sheet .opt{font-style:normal;font-weight:500;color:#6f6385;letter-spacing:0}
+.lf-steps{list-style:none;margin:0;padding:12px 14px;border-radius:12px;background:#0f0b18;border:1px solid var(--line);display:grid;gap:6px;font-size:13px;color:#6f6385}
+.lf-steps[hidden]{display:none}
+.lf-steps li::before{content:"○";display:inline-block;width:20px;color:#6f6385}
+.lf-steps li.now{color:var(--txt)}.lf-steps li.now::before{content:"◐";color:var(--gold);animation:spin 1s linear infinite;display:inline-block}
+.lf-steps li.ok{color:var(--green)}.lf-steps li.ok::before{content:"✓";color:var(--green)}
+#lfGo:disabled{opacity:.6;cursor:wait;transform:none}
+.c-bot a.btn{flex:1;padding:9px 10px;font-size:13px;border-radius:10px}
+.prog{font:700 11px "JetBrains Mono";color:var(--mut)}
+.grad{display:inline-block;padding:1px 6px;border-radius:6px;background:var(--green);color:#0c0913;font:800 10px Inter;margin-left:4px;vertical-align:middle}
+@media (max-width:760px){.wallet-btn{padding:8px 10px}.wallet-btn #walletTxt{max-width:84px;overflow:hidden;text-overflow:ellipsis}.ca-chip{display:none}}
