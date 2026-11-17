@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heistpad — every launch is a heist</title>
+<meta name="description" content="Launch a coin out of any business in Florida. Every launch feeds the Vault, which holds tokenized $TTWO.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<link href="styles.css?v=4" rel="stylesheet">
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="#home" aria-label="Heistpad home">
+    <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="2" y="2" width="36" height="36" rx="9" fill="#ffc83d"/><circle cx="20" cy="20" r="11" fill="none" stroke="#120d1c" stroke-width="3.2"/><circle cx="20" cy="20" r="3.2" fill="#120d1c"/><path d="M20 9v5M20 26v5M9 20h5M26 20h5" stroke="#120d1c" stroke-width="3.2" stroke-linecap="round"/></svg>
+    <b>HEIST</b><span>PAD</span>
+  </a>
+  <nav class="links">
+    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#vault">Vault</a><button type="button" data-launch>Launch</button>
+  </nav>
+  <button type="button" class="ca-chip" data-copy="CA_PLACEHOLDER" aria-label="Copy Heistpad contract address"><i>CA</i><code>launching soon</code></button>
+  <button type="button" class="snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <button type="button" class="btn pink sm" data-launch>Pull a job</button>
+</header>
+
+<main>
+<section id="home" class="hero">
+  <svg class="skyline" viewBox="0 0 1440 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs><linearGradient id="sun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#ff3d8b"/></linearGradient>
+    <mask id="sunCut"><rect width="1440" height="260" fill="#fff"/><g fill="#000"><rect y="150" width="1440" height="5"/><rect y="168" width="1440" height="7"/><rect y="188" width="1440" height="9"/><rect y="210" width="1440" height="11"/></g></mask></defs>
+    <circle cx="300" cy="215" r="135" fill="url(#sun)" mask="url(#sunCut)" opacity=".55"/>
+    <path fill="#160f22" d="M0 260V196h40v-30h26v30h20v-58h34v58h16v-40h30v-62h12v-14h8v14h12v62h18v40h22v-24h40v24h18v-74h30v74h20v-34h28v34h30v-52h22v-26h10v26h20v52h26v-18h38v18h18v-66h26v-10h14v10h20v66h24v-30h34v30h28v-90h34v90h18v-40h30v40h26v-22h30v22h30v-62h22v-20h6v20h24v62h20v-36h34v36h24v-48h28v48h22v-28h30v28h26v-70h30v70h22v-34h28v34h20v-56h30v56h26v-24h30v24h20V260z"/>
+    <g fill="#1d1430"><path d="M1120 260c6-60 10-120 30-176" stroke="#1d1430" stroke-width="8" fill="none"/><path d="M1150 84c-30-6-60 4-82 26 30-8 52-10 82-26zm0 0c24-22 56-28 90-18-34 2-58 8-90 18zm0 0c-14-24-40-38-70-38 26 12 46 20 70 38zm0 0c22-4 50 8 66 30-24-10-42-18-66-30zm0 0c-26 6-44 24-54 50 20-22 34-34 54-50z"/>
+    <path d="M190 260c-4-50-2-100-18-150" stroke="#1d1430" stroke-width="7" fill="none"/><path d="M172 110c-26-4-50 6-68 24 26-6 44-10 68-24zm0 0c20-20 46-24 74-14-28 2-48 6-74 14zm0 0c-12-20-32-32-58-32 22 10 38 18 58 32zm0 0c18 0 40 10 52 28-20-10-34-16-52-28z"/></g>
+  </svg>
+  <div class="hero-copy">
+    <p class="kicker"><span class="dot"></span>FLORIDA · 6 REGIONS · <b id="bizCount">—</b> BUSINESSES · ONE COIN EACH</p>
+    <h1>Every business<br>is a <em>job.</em></h1>
+    <p class="lede">Case a nightclub in Miami, a bait shop in the Keys, a launch pad on the Space Coast. The first crew to launch its coin runs it. Every launch kicks a cut into <b>the Vault</b>, which holds tokenized <b class="gold">$TTWO</b>.</p>
+    <div class="cta">
+      <a class="btn pink" href="#map">Open the map <span>→</span></a>
+      <button type="button" class="btn ghost" data-launch>Launch a coin</button>
+    </div>
+
+    <div class="release">
+      <div class="rl-head"><span>VI DROPS IN</span><small>Nov 19 · the vault keeps stacking till then</small></div>
+      <div class="rl-clock" id="clock">
+        <div><b data-u="d">0</b><i>days</i></div><div><b data-u="h">00</b><i>hrs</i></div><div><b data-u="m">00</b><i>min</i></div><div><b data-u="s">00</b><i>sec</i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-map" id="map">
+    <div id="mapEl" aria-label="Map of Florida businesses with coins"></div>
+    <div class="map-hud">
+      <div class="filters" id="regionFilters"></div>
+    </div>
+    <div class="hud-tr" aria-live="off"><b id="hudCash">$0</b><div class="stars big" id="hudStars"></div></div>
+    <div class="feed" id="feed" aria-live="polite"></div>
+    <div class="area" id="area"></div>
+    <div class="map-card" id="mapCard" hidden></div>
+    <div class="legend"><span><i class="lg own"></i>Taken</span><span><i class="lg open"></i>Open job</span><span><i class="lg vault"></i>The Vault</span></div>
+  </div>
+</section>
+
+<section class="stats">
+  <div><b id="stCoins">—</b><span>coins on the map</span></div>
+  <div><b id="stCap">—</b><span>total market cap</span></div>
+  <div><b id="stOpen">—</b><span>jobs still open</span></div>
+  <div class="gold-stat"><b id="stVault">—</b><span>held in the Vault</span></div>
+</section>
+
+<section id="vault" class="vault-sec">
+  <div class="vault-l">
+    <p class="kicker gold-k">THE TWIST</p>
+    <h2>The Vault holds the <em>real</em> publisher.</h2>
+    <p>Most launchpads keep the fees. Heistpad sweeps a cut of every launch and trade into one on-chain vault that buys <b>tokenized Take-Two ($TTWO)</b>, the publisher behind the year's biggest game drop. Each share token is backed 1:1 by a real Nasdaq share.</p>
+    <ul class="vault-pts">
+      <li><b>1%</b> of every trade fee goes to the Vault</li>
+      <li><b>Top crew</b> each week gets a cut of the Vault's growth</li>
+      <li><b>Public</b> vault wallet, anyone can audit it</li>
+    </ul>
+  </div>
+  <div class="vault-card">
+    <div class="vc-top">
+      <div class="vc-door" aria-hidden="true"><div class="dial"></div></div>
+      <div>
+        <small>TOKENIZED TAKE-TWO</small>
+        <h3>$TTWO</h3>
+        <span class="vc-src">live from Solana · Backpack Securities</span>
+      </div>
+    </div>
+    <div class="vc-price"><b id="ttwoPx">$—</b><span id="ttwoChg" class="chg">—</span></div>
+    <div class="vc-grid">
+      <div><span>Vault holds</span><b id="vHold">—</b></div>
+      <div><span>Vault value</span><b id="vVal">—</b></div>
+      <div><span>Liquidity</span><b id="vLiq">—</b></div>
+      <div><span>Company value</span><b id="vMcap">—</b></div>
+    </div>
+    <button type="button" class="vc-mint" data-copy="TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo"><i>$TTWO MINT</i><code>TTWofw…88xijGvQFbKo</code></button>
+    <p class="vc-note">Vault balance shown is a demo figure. $TTWO price is live.</p>
+  </div>
+</section>
+
+<section id="jobs" class="jobs">
+  <div class="sec-head"><h2>Newest jobs</h2><div class="sort" id="sortTabs"><button class="on" data-sort="new">New</button><button data-sort="heat">Heat</button><button data-sort="cap">Market cap</button></div></div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section class="boards">
+  <div class="board"><h3>Biggest businesses</h3><ol id="bizBoard"></ol></div>
+  <div class="board"><h3>Most wanted crews</h3><ol id="crewBoard"></ol></div>
+</section>
+
+<section class="regions">
+  <h2>The 6 regions</h2>
+  <div class="reg-grid" id="regGrid"></div>
+</section>
+
+<section class="how">
+  <h2>How a job works</h2>
+  <div class="steps">
+    <div><svg class="sic" viewBox="0 0 48 48"><circle cx="21" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="4"/><path d="M30 30l10 10" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg><i>01</i><h4>Case the joint</h4><p>Pick any open business on the map. A strip club in Miami, an airboat tour in the Glades, a shipyard on the Gulf.</p></div>
+    <div><svg class="sic" viewBox="0 0 48 48"><path d="M24 4c8 6 12 16 10 28H14C12 20 16 10 24 4z" fill="currentColor"/><circle cx="24" cy="18" r="4" fill="#120d1c"/><path d="M14 32l-6 8 10-2M34 32l6 8-10-2M20 36l4 8 4-8" fill="currentColor"/></svg><i>02</i><h4>Pull the job</h4><p>Name, ticker, image. One approval and the coin is live. Your business is yours and your wanted level starts climbing.</p></div>
+    <div><svg class="sic" viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="6" fill="currentColor"/><circle cx="24" cy="24" r="10" fill="none" stroke="#120d1c" stroke-width="3.5"/><path d="M24 14v6M24 28v6M14 24h6M28 24h6" stroke="#120d1c" stroke-width="3.5"/></svg><i>03</i><h4>Hit the vault</h4><p>Your marker grows with your market cap. Every trade feeds the $TTWO Vault, and the hottest crew each week gets a cut.</p></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="brand small"><b>HEIST</b><span>PAD</span></div>
+  <p>Concept build with demo coins. Heistpad is not affiliated with, endorsed by or sponsored by Take-Two Interactive or Rockstar Games. $TTWO is a tokenized equity issued by Backpack Securities; price data from Jupiter. Nothing here is investment advice.</p>
+</footer>
+
+<!-- launch modal -->
+<div class="modal" id="launchModal" hidden>
+  <form class="sheet" id="launchForm">
+    <button type="button" class="x" data-close aria-label="Close">×</button>
+    <p class="kicker">PULL A JOB</p>
+    <h3>Launch a coin</h3>
+    <label>Business<select id="lfBiz" required></select></label>
+    <div class="row2">
+      <label>Coin name<input id="lfName" maxlength="24" placeholder="Neon Palms" required></label>
+      <label>Ticker<input id="lfTick" maxlength="10" placeholder="NEON" required></label>
+    </div>
+    <label class="file">Image<input id="lfImg" type="file" accept="image/*"><span id="lfImgTxt">Drop or pick an image</span></label>
+    <p class="fine">Demo mode: nothing is sent on chain.</p>
+    <button class="btn pink wide" type="submit">Launch it <span>→</span></button>
+  </form>
+</div>
+
+<!-- mission passed -->
+<div class="passed" id="passed" hidden>
+  <div class="ps-in">
+    <small>JOB COMPLETE</small>
+    <h2>mission passed!</h2>
+    <p id="psTxt">+ RESPECT</p>
+    <button type="button" class="btn ghost" data-close-passed>Back to the map</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="app.js?v=5"></script>
+</body>
+</html>
