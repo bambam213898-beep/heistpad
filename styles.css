@@ -492,3 +492,8 @@ body::before{background:radial-gradient(1000px 520px at 80% -15%,rgba(255,61,139
 .prog{font:700 11px "JetBrains Mono";color:var(--mut)}
 .grad{display:inline-block;padding:1px 6px;border-radius:6px;background:var(--green);color:#0c0913;font:800 10px Inter;margin-left:4px;vertical-align:middle}
 @media (max-width:760px){.wallet-btn{padding:8px 10px}.wallet-btn #walletTxt{max-width:84px;overflow:hidden;text-overflow:ellipsis}.ca-chip{display:none}}
+.nw h3{font-size:30px}
+.nw-p{margin:0;color:var(--mut)}
+.nw-list{margin:0;padding-left:18px;display:grid;gap:8px;color:var(--mut);font-size:14px}
+.nw-list b{color:var(--txt)}
+.nw-row{display:flex;gap:10px;flex-wrap:wrap}.nw-row .btn{flex:1}

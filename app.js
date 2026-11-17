@@ -192,7 +192,7 @@
     provider = getProvider();
     if (!provider) {
       if (/Android|iPhone|iPad/i.test(navigator.userAgent)) { location.href = `https://phantom.app/ul/browse/${encodeURIComponent(location.href)}?ref=${encodeURIComponent(location.origin)}`; return; }
-      toast('Install Phantom or Solflare to launch'); window.open('https://phantom.app/download', '_blank', 'noopener'); return;
+      $('#noWallet').hidden = false; return;
     }
     try { const r = await provider.connect(); wallet = new W3.PublicKey((r?.publicKey || provider.publicKey).toString()); syncWallet(); toast('Wallet connected'); }
     catch (_) { toast('Wallet connection cancelled'); }
@@ -502,4 +502,12 @@
   loadCoins(); setInterval(() => { if (!document.hidden) loadCoins(); }, 15000);
   // refresh ages
   setInterval(() => { if (sortBy) renderAll(); }, 60000);
+})();
+// "no wallet" help panel
+(() => {
+  const nw = document.getElementById('noWallet'); if (!nw) return;
+  nw.addEventListener('click', (e) => {
+    if (e.target === nw || e.target.closest('[data-close-nw]')) nw.hidden = true;
+    if (e.target.closest('[data-copy-link]')) navigator.clipboard?.writeText(location.href).then(() => { e.target.textContent = 'Link copied ✓'; });
+  });
 })();
