@@ -498,3 +498,8 @@ body::before{background:radial-gradient(1000px 520px at 80% -15%,rgba(255,61,139
 .nw-list b{color:var(--txt)}
 .nw-row{display:flex;gap:10px;flex-wrap:wrap}.nw-row .btn{flex:1}
 .toast{max-width:min(560px,calc(100vw - 32px));text-align:center;line-height:1.35}
+.hero-ca{display:flex;align-items:center;gap:10px;width:100%;max-width:520px;margin-top:18px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,200,61,.45);background:rgba(12,9,19,.75);cursor:pointer;text-align:left;transition:border-color .15s,transform .15s}
+.hero-ca:hover{border-color:var(--gold);transform:translateY(-1px)}
+.hero-ca i{font-style:normal;font:800 12px Inter;letter-spacing:1px;color:#120d1c;background:var(--gold);padding:4px 8px;border-radius:7px;flex:none}
+.hero-ca code{font:700 clamp(11px,1.15vw,14px) "JetBrains Mono",monospace;color:var(--txt);overflow-wrap:anywhere;word-break:break-all}
+@media (max-width:760px){.hero-ca code{font-size:12px}}
