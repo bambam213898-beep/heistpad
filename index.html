@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="styles.css?v=4" rel="stylesheet">
+<link href="styles.css?v=5" rel="stylesheet">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
     <b>HEIST</b><span>PAD</span>
   </a>
   <nav class="links">
-    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#vault">Vault</a><button type="button" data-launch>Launch</button>
+    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><button type="button" data-launch>Launch</button>
   </nav>
   <button type="button" class="ca-chip" data-copy="CA_PLACEHOLDER" aria-label="Copy Heistpad contract address"><i>CA</i><code>launching soon</code></button>
   <button type="button" class="snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -78,8 +78,8 @@
     <h2>The Vault holds the <em>real</em> publisher.</h2>
     <p>Most launchpads keep the fees. Heistpad sweeps a cut of every launch and trade into one on-chain vault that buys <b>tokenized Take-Two ($TTWO)</b>, the publisher behind the year's biggest game drop. Each share token is backed 1:1 by a real Nasdaq share.</p>
     <ul class="vault-pts">
-      <li><b>1%</b> of every trade fee goes to the Vault</li>
-      <li><b>Top crew</b> each week gets a cut of the Vault's growth</li>
+      <li><b>0.40%</b> of every trade, plus half of each launch fee, goes to the Vault</li>
+      <li><b>1%+ holders</b> get the Update Drop: airdrops of the official locations</li>
       <li><b>Public</b> vault wallet, anyone can audit it</li>
     </ul>
   </div>
@@ -101,6 +101,80 @@
     </div>
     <button type="button" class="vc-mint" data-copy="TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo"><i>$TTWO MINT</i><code>TTWofw…88xijGvQFbKo</code></button>
     <p class="vc-note">Vault balance shown is a demo figure. $TTWO price is live.</p>
+  </div>
+</section>
+
+<section id="plan" class="plan">
+  <div class="sec-head"><div><p class="kicker gold-k">THE VAULT PLAN</p><h2>Where every fee goes</h2></div></div>
+
+  <div class="split">
+    <div class="split-bar" role="img" aria-label="1% trade fee split: 0.40% Vault, 0.30% coin creator, 0.20% $HEIST buyback, 0.10% operations">
+      <i style="flex:40" class="s-v"></i><i style="flex:30" class="s-c"></i><i style="flex:20" class="s-b"></i><i style="flex:10" class="s-o"></i>
+    </div>
+    <div class="split-key">
+      <div><i class="s-v"></i><b>0.40%</b><span>The Vault: buys tokenized $TTWO</span></div>
+      <div><i class="s-c"></i><b>0.30%</b><span>The coin's creator, paid every trade</span></div>
+      <div><i class="s-b"></i><b>0.20%</b><span>$HEIST buyback &amp; burn</span></div>
+      <div><i class="s-o"></i><b>0.10%</b><span>Ops: servers, audits, map data</span></div>
+    </div>
+    <p class="split-note">That's the <b>1% trade fee</b> on every coin. On top of it, each launch costs <b>0.02 SOL</b>, and half of that goes to the Vault too.</p>
+  </div>
+
+  <div class="flow" aria-label="How money moves through the Vault">
+    <div><b>01</b><h4>Trades &amp; launches</h4><p>Fees collect in SOL, live on chain.</p></div>
+    <div><b>02</b><h4>Sunday buy</h4><p>Every Sunday at 8pm ET the Vault swaps its SOL for tokenized $TTWO. The tx is posted publicly.</p></div>
+    <div><b>03</b><h4>Hold through launch</h4><p>The Vault doesn't sell $TTWO before the official map update. Every share stays on the books.</p></div>
+    <div><b>04</b><h4>Pay the crews</h4><p>After the update, the Vault's growth funds weekly payouts, Vault Pass perks and the Update Drop.</p></div>
+  </div>
+
+  <h3 class="sub">What the Vault does for holders</h3>
+  <div class="util">
+    <div><span class="u-ic">★</span><h4>Weekly Big Score</h4><p>Each week the coin with the most volume becomes the "Big Score". 10% of the Vault's weekly growth goes to its holders, split by how much they hold.</p></div>
+    <div><span class="u-ic">◎</span><h4>Vault Pass</h4><p>Hold a combined 1% or more across Heistpad coins and you get a Vault Pass: free launches, early access to new map areas and a vote on Vault calls.</p></div>
+    <div><span class="u-ic">⚑</span><h4>Crew votes</h4><p>Vault Pass holders vote on which official locations unlock first, and whether the Vault keeps buying or starts paying out.</p></div>
+    <div><span class="u-ic">⛁</span><h4>Proof of vault</h4><p>One public wallet. Live $TTWO balance on this page, and every buy and payout is linked, so anyone can audit it.</p></div>
+    <div><span class="u-ic">⇪</span><h4>Creator cut</h4><p>Whoever launched a coin earns 0.30% of every trade on it, forever. Run the biggest business on the map, earn the most.</p></div>
+    <div><span class="u-ic">♨</span><h4>$HEIST burn</h4><p>0.20% of all volume buys back and burns $HEIST, so the platform token shrinks as the map gets busier.</p></div>
+  </div>
+
+  <h3 class="sub">Roadmap</h3>
+  <ol class="road">
+    <li class="done"><span>Now</span><h4>Florida map is open</h4><p>43 businesses, one coin each. Fees start stacking in the Vault.</p></li>
+    <li class="now"><span>Nov 19</span><h4>VI drops</h4><p>The game launches. Crews start mapping official locations and heists as players find them.</p></li>
+    <li><span>Map update</span><h4>Official locations go live</h4><p>Every official business and heist gets a slot on the map. Snapshot for the Update Drop is taken.</p></li>
+    <li><span>+72 hours</span><h4>Update Drop</h4><p>Eligible holders pick their locations and heists, and the airdrop lands. Then the Vault starts weekly payouts.</p></li>
+  </ol>
+</section>
+
+<section id="drop" class="drop">
+  <div class="drop-head">
+    <p class="kicker">THE UPDATE DROP</p>
+    <h2>Hold 1%. Pick your heists.</h2>
+    <p class="drop-lede">Once VI is out and the official locations and heists are mapped, they come to Heistpad as new coins. Anyone holding a <b>combined 1% or more</b> of Heistpad coins gets airdropped that <b>same share of supply</b> in the new locations, and <b>you choose which ones</b>.</p>
+  </div>
+
+  <div class="drop-grid">
+    <div class="rules">
+      <h3 class="sub">The rules</h3>
+      <ol>
+        <li><b>Combined 1% minimum.</b> Add up your share of each coin's supply. 0.5% of $NEOPALMS + 0.3% of $PAD39 + 0.2% of $MACCA = 1%. You're in.</li>
+        <li><b>Snapshot.</b> Taken the moment the official map update goes live, and announced 48 hours ahead. Selling before the snapshot means you're out.</li>
+        <li><b>Your share carries over.</b> For every location or heist you pick, you get the same % of its supply as your combined holding, capped at 10% per location.</li>
+        <li><b>Picks.</b> One pick per full 1% you hold, up to 10 picks. 1% = 1 pick, 3% = 3 picks, 7.4% = 7 picks. You get 72 hours to choose.</li>
+        <li><b>Hot spots.</b> If too many holders pick the same location, its airdrop is capped at 30% of supply and split in proportion to what each holder asked for.</li>
+        <li><b>Who's left out.</b> Liquidity pools, the Vault, and team and platform wallets don't count toward the snapshot.</li>
+      </ol>
+    </div>
+
+    <div class="calc" id="calc">
+      <h3 class="sub">Check your drop</h3>
+      <label class="calc-l" for="calcPct">Your combined holding <b id="calcVal">1.0%</b></label>
+      <input type="range" id="calcPct" min="0" max="12" step="0.1" value="1">
+      <div class="calc-out" id="calcOut"></div>
+      <div class="picks-head"><span>Pick your locations</span><b id="pickCount">0 / 1</b></div>
+      <div class="loc-grid" id="locGrid"></div>
+      <p class="fine">Preview only. Official names unlock after the game is out and the map is updated.</p>
+    </div>
   </div>
 </section>
 
@@ -142,11 +216,13 @@
     <h3>Launch a coin</h3>
     <label>Business<select id="lfBiz" required></select></label>
     <div class="row2">
-      <label>Coin name<input id="lfName" maxlength="24" placeholder="Neon Palms" required></label>
-      <label>Ticker<input id="lfTick" maxlength="10" placeholder="NEON" required></label>
+      <label>Coin name<input id="lfName" maxlength="24" minlength="2" placeholder="Neon Palms" required autocomplete="off"></label>
+      <label>Ticker<input id="lfTick" maxlength="10" minlength="2" placeholder="NEON" required autocomplete="off" autocapitalize="characters"></label>
     </div>
-    <label class="file">Image<input id="lfImg" type="file" accept="image/*"><span id="lfImgTxt">Drop or pick an image</span></label>
-    <p class="fine">Demo mode: nothing is sent on chain.</p>
+    <label class="file">Image<input id="lfImg" type="file" accept="image/*"><span id="lfImgTxt">Drop or pick an image (optional)</span></label>
+    <p class="lf-err" id="lfErr" role="alert" hidden></p>
+    <div class="lf-fee"><span>Launch fee</span><b>0.02 SOL</b><small>50% goes straight to the Vault</small></div>
+    <p class="fine">Demo mode: nothing is sent on chain. Your launches are saved in this browser.</p>
     <button class="btn pink wide" type="submit">Launch it <span>→</span></button>
   </form>
 </div>
@@ -164,6 +240,6 @@
 <div class="toast" id="toast" role="status"></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

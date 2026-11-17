@@ -84,7 +84,7 @@
     const max = Math.max(...cs.map((b) => b.coin.cap));
     $('#cards').innerHTML = sorted.slice(0, 12).map((b) => `
       <article class="card" data-biz="${b.id}">
-        <div class="c-top">${avatar(b.coin)}<div><h4>${esc(b.coin.name)}</h4><small>$${esc(b.coin.tick)}</small></div><span class="c-age">${ago(b.coin.born)}</span></div>
+        <div class="c-top">${avatar(b.coin)}<div><h4>${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</h4><small>$${esc(b.coin.tick)}</small></div><span class="c-age">${ago(b.coin.born)}</span></div>
         <div class="c-biz"><b>${esc(b.name)}</b> · ${regionName(b.rid)}</div>
         <div class="c-mid"><span class="c-cap">${fmt$(b.coin.cap)}</span>${stars(b.coin.vol)}</div>
         <div class="bar"><i style="width:${Math.max(6, (b.coin.cap / max) * 100)}%"></i></div>
@@ -166,7 +166,7 @@
   function showCard(b) {
     const card = $('#mapCard'); card.hidden = false;
     card.innerHTML = `<button class="x" aria-label="Close">×</button><div class="mc-type">${esc(b.type)}</div><h4>${esc(b.name)}</h4><div class="mc-reg">${regionName(b.rid)}</div>` + (b.coin
-      ? `<div class="mc-row">${avatar(b.coin)}<div style="flex:1"><div style="font-weight:800">${esc(b.coin.name)}</div><small style="color:var(--mut);font-family:JetBrains Mono">$${esc(b.coin.tick)}</small></div>${stars(b.coin.vol)}</div>
+      ? `<div class="mc-row">${avatar(b.coin)}<div style="flex:1"><div style="font-weight:800">${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</div><small style="color:var(--mut);font-family:JetBrains Mono">$${esc(b.coin.tick)}</small></div>${stars(b.coin.vol)}</div>
          <div class="mc-row"><span style="color:var(--mut)">Market cap</span><b>${fmt$(b.coin.cap)}</b></div>
          <div class="c-bot"><button class="btn pink" data-buy="${b.id}">Buy $${esc(b.coin.tick)}</button><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>`
       : `<p style="color:var(--mut);margin:6px 0 12px;font-size:14px">This job is still open. First crew to launch its coin runs it.</p><button class="btn pink wide" data-launch="${b.id}">Pull this job →</button>`);
@@ -186,12 +186,42 @@
   /* ---------- launch flow (demo) ---------- */
   const modal = $('#launchModal');
   let imgData = null;
+  const setErr = (msg) => { const e = $('#lfErr'); e.textContent = msg || ''; e.hidden = !msg; };
   function openLaunch(bizId) {
     const open = BIZ.filter((b) => !b.coin);
-    $('#lfBiz').innerHTML = REGIONS.map((r) => `<optgroup label="${r.name}">${open.filter((b) => b.rid === r.id).map((b) => `<option value="${b.id}">${esc(b.name)} — ${esc(b.type)}</option>`).join('')}</optgroup>`).join('');
+    $('#launchForm').reset(); imgData = null; $('#lfImgTxt').textContent = 'Drop or pick an image (optional)'; setErr('');
+    if (!open.length) { toast('Every business on the map is taken'); return; }
+    $('#lfBiz').innerHTML = REGIONS.map((r) => {
+      const list = open.filter((b) => b.rid === r.id);
+      return list.length ? `<optgroup label="${r.name}">${list.map((b) => `<option value="${b.id}">${esc(b.name)} — ${esc(b.type)}</option>`).join('')}</optgroup>` : '';
+    }).join('');
     if (bizId && open.some((b) => b.id === bizId)) $('#lfBiz').value = bizId;
-    $('#launchForm').reset(); if (bizId) $('#lfBiz').value = bizId; imgData = null; $('#lfImgTxt').textContent = 'Drop or pick an image';
+    else if (bizId) toast('That business was already taken — pick another');
+    $('#mapCard').hidden = true;
     modal.hidden = false; setTimeout(() => $('#lfName').focus(), 50);
+  }
+  /* launches you make are saved in this browser so they survive a refresh */
+  const STORE = 'heistpad.launches.v1';
+  const loadSaved = () => { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (_) { return []; } };
+  const saveLaunch = (rec) => { try { const all = loadSaved().filter((r) => r.bid !== rec.bid); all.push(rec); localStorage.setItem(STORE, JSON.stringify(all)); } catch (_) {} };
+  for (const r of loadSaved()) {
+    const b = BIZ.find((x) => x.id === r.bid);
+    if (b && !b.coin) b.coin = { name: r.name, tick: r.tick, cap: r.cap || 1500, vol: r.vol || 3, ca: r.ca, color: r.color, born: r.born, img: r.img || null, mine: true };
+  }
+  // shrink uploads to a small square so they render fast and fit in storage
+  function shrink(file) {
+    return new Promise((res, rej) => {
+      if (!file.type.startsWith('image/')) return rej(new Error('That file is not an image'));
+      if (file.size > 8 * 1024 * 1024) return rej(new Error('Image is over 8 MB'));
+      const url = URL.createObjectURL(file), im = new Image();
+      im.onload = () => {
+        const S = 128, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+        const s = Math.min(im.width, im.height); g.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, S, S);
+        URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.85));
+      };
+      im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Could not read that image')); };
+      im.src = url;
+    });
   }
   document.addEventListener('click', (e) => {
     const l = e.target.closest('[data-launch]'); if (l) { e.preventDefault(); openLaunch(l.dataset.launch || null); }
@@ -199,16 +229,23 @@
   modal.addEventListener('click', (e) => { if (e.target === modal || e.target.closest('[data-close]')) modal.hidden = true; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { modal.hidden = true; $('#passed').hidden = true; } });
   $('#lfTick').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
-  $('#lfImg').addEventListener('change', (e) => {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader(); r.onload = () => { imgData = r.result; $('#lfImgTxt').textContent = f.name; }; r.readAsDataURL(f);
+  $('#lfImg').addEventListener('change', async (e) => {
+    const f = e.target.files[0]; imgData = null; if (!f) return;
+    try { imgData = await shrink(f); $('#lfImgTxt').innerHTML = `<img src="${imgData}" alt="" class="lf-prev"> ${esc(f.name)}`; setErr(''); }
+    catch (err) { e.target.value = ''; $('#lfImgTxt').textContent = 'Drop or pick an image (optional)'; setErr(err.message); }
   });
   $('#launchForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const b = BIZ.find((x) => x.id === $('#lfBiz').value);
-    if (!b) return;
-    b.coin = { name: $('#lfName').value.trim(), tick: $('#lfTick').value, cap: 1500, vol: 3, ca: caOf(), color: PALETTE[(rnd() * PALETTE.length) | 0], born: Date.now(), img: imgData };
-    modal.hidden = true;
+    const name = $('#lfName').value.trim().replace(/\s+/g, ' '), tick = $('#lfTick').value.trim();
+    if (!b) return setErr('Pick a business to launch.');
+    if (b.coin) return setErr(`${b.name} was just taken by $${b.coin.tick}. Pick another business.`);
+    if (name.length < 2) return setErr('Coin name needs at least 2 characters.');
+    if (tick.length < 2) return setErr('Ticker needs 2–10 letters or numbers.');
+    if (coins().some((x) => x.coin.tick.toUpperCase() === tick)) return setErr(`$${tick} is already on the map. Try another ticker.`);
+    b.coin = { name, tick, cap: 1500, vol: 3, ca: caOf(), color: PALETTE[(Math.random() * PALETTE.length) | 0], born: Date.now(), img: imgData, mine: true };
+    saveLaunch({ bid: b.id, name, tick, ca: b.coin.ca, color: b.coin.color, born: b.coin.born, img: imgData });
+    setErr(''); modal.hidden = true;
     sortBy = 'new'; $$('#sortTabs button').forEach((x) => x.classList.toggle('on', x.dataset.sort === 'new'));
     renderAll();
     $('#psTxt').textContent = `${b.name} is yours · $${b.coin.tick} is live · + RESPECT`;
@@ -239,7 +276,37 @@
   /* nav highlight */
   const navLinks = $$('.links a');
   const io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) navLinks.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-45% 0px -50% 0px' });
-  ['home', 'vault', 'jobs'].forEach((id) => io.observe(document.getElementById(id)));
+  ['home', 'vault', 'drop', 'jobs'].forEach((id) => io.observe(document.getElementById(id)));
+
+  /* ---------- Update Drop: eligibility checker + location picker ---------- */
+  const DROP_MIN = 1, DROP_CAP = 10, MAX_PICKS = 10;
+  const LOCS = [
+    ['Heist', 'Bank vault', 'Downtown'], ['Business', 'Nightclub', 'Beachfront'], ['Heist', 'Armored truck', 'Highway'],
+    ['Business', 'Car dealership', 'Port side'], ['Heist', 'Jewelry store', 'Mall strip'], ['Business', 'Marina', 'Keys'],
+    ['Heist', 'Casino job', 'Strip'], ['Business', 'Strip club', 'Downtown'], ['Heist', 'Cargo ship', 'Port'],
+    ['Business', 'Gas station', 'Swamp road'], ['Heist', 'Airfield', 'Glades'], ['Business', 'Recording studio', 'Uptown'],
+  ];
+  const picked = new Set();
+  function renderDrop() {
+    const pct = parseFloat($('#calcPct').value), ok = pct >= DROP_MIN;
+    const picks = ok ? Math.min(MAX_PICKS, Math.floor(pct)) : 0, per = Math.min(DROP_CAP, pct);
+    while (picked.size > picks) picked.delete([...picked].pop());
+    $('#calcVal').textContent = pct.toFixed(1) + '%';
+    $('#calcOut').innerHTML = ok
+      ? `<span class="st ok">You're in the drop</span>You get <b>${picks} pick${picks > 1 ? 's' : ''}</b>. Each location you pick airdrops you <b>${per.toFixed(1)}% of its supply</b>${pct > DROP_CAP ? ` (capped at ${DROP_CAP}%)` : ''}. You also get a <b>Vault Pass</b>.`
+      : `<span class="st no">Not eligible yet</span>You need a combined <b>${DROP_MIN}%</b>. That's <b>${(DROP_MIN - pct).toFixed(1)}% more</b> across any Heistpad coins.`;
+    $('#pickCount').textContent = `${picked.size} / ${picks}`;
+    $('#locGrid').innerHTML = LOCS.map(([kind, type, area], i) => {
+      const on = picked.has(i), dis = !on && picked.size >= picks;
+      return `<button type="button" class="loc ${kind === 'Heist' ? 'heist' : ''} ${on ? 'on' : ''}" data-loc="${i}" aria-pressed="${on}" ${dis ? 'disabled' : ''}><small>${kind}</small><b>${on ? 'PICKED ✓' : '██████'}</b><span>${type} · ${area}</span></button>`;
+    }).join('');
+  }
+  $('#calcPct').addEventListener('input', renderDrop);
+  $('#locGrid').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-loc]'); if (!b || b.disabled) return;
+    const i = +b.dataset.loc; picked.has(i) ? picked.delete(i) : picked.add(i); renderDrop();
+  });
+  renderDrop();
 
   /* ---------- game layer: HUD, area names, live feed, vehicles, sound ---------- */
   const AC = window.AudioContext || window.webkitAudioContext; let ac = null, soundOn = false;
