@@ -238,6 +238,16 @@
   (() => { const d = DL.get(); if (d?.session && d.wallet) { dlSession = d; } })();
 
   async function waitProvider(ms = 2500) { const t0 = Date.now(); let p; while (!(p = getProvider()) && !stdWallet() && Date.now() - t0 < ms) await new Promise((r) => setTimeout(r, 150)); return p; }
+  function report(kind, extra) {
+    try {
+      const sw = STD.map((w) => ({ name: w.name, chains: w.chains, features: Object.keys(w.features || {}) }));
+      const p = getProvider();
+      const r = { kind, at: new Date().toISOString(), ua: navigator.userAgent, url: location.pathname + location.search.replace(/crew=[^&]+/, 'crew=x'),
+        mobile: IS_MOBILE, inWalletApp: IN_WALLET_APP, injected: p ? { isPhantom: !!p.isPhantom, isSolflare: !!p.isSolflare, isBackpack: !!p.isBackpack, isConnected: !!p.isConnected, hasRequest: !!p.request, hasSignAndSend: !!p.signAndSendTransaction } : null,
+        phantomObj: !!window.phantom, solanaObj: !!window.solana, standardWallets: sw, ...extra };
+      fetch(`${API}/api/diag`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(r), keepalive: true }).catch(() => {});
+    } catch (_) {}
+  }
   const errText = (err) => { const m = String(err?.message || err || 'unknown error'); return err?.code != null ? `${m} [code ${err.code}]` : m; };
   const isNo = (err) => /reject|cancel|denied|declined|closed/i.test(String(err?.message || err)) || err?.code === 4001;
   async function connectWallet() {
@@ -255,16 +265,17 @@
       const viaLegacy = async () => { if (!provider) throw new Error('no injected wallet'); const r = await provider.connect(); const pk = r?.publicKey || provider.publicKey; if (!pk) throw new Error(`${name} didn't share an address`); stdW = null; stdAcct = null; return pk.toString(); };
       const viaRequest = async () => { if (!provider?.request) throw new Error('no request()'); const r = await provider.request({ method: 'connect' }); const pk = r?.publicKey || provider.publicKey; if (!pk) throw new Error(`${name} didn't share an address`); stdW = null; stdAcct = null; return pk.toString(); };
       const order = IS_MOBILE || IN_WALLET_APP ? [viaStd, viaLegacy, viaRequest] : [viaLegacy, viaStd, viaRequest];
-      const errors = [];
+      const errors = [], attempts = [];
       try {
         let addr = null;
         for (const fn of order) {
           try { addr = await fn(); break; }
-          catch (err) { if (isNo(err)) throw err; if (!/^no (standard wallet|injected wallet|request)/.test(String(err?.message))) errors.push(errText(err)); console.warn('[heistpad] connect method failed:', fn.name, err); await new Promise((r) => setTimeout(r, 400)); }
+          catch (err) { if (isNo(err)) throw err; attempts.push({ method: fn.name, message: String(err?.message || err), code: err?.code ?? null, data: (() => { try { return JSON.stringify(err?.data ?? null).slice(0, 300); } catch (_) { return null; } })(), stack: String(err?.stack || '').slice(0, 300) }); if (!/^no (standard wallet|injected wallet|request)/.test(String(err?.message))) errors.push(errText(err)); console.warn('[heistpad] connect method failed:', fn.name, err); await new Promise((r) => setTimeout(r, 400)); }
         }
         if (!addr) throw new Error(errors[0] || 'no connection method worked');
         wallet = new W3.PublicKey(addr); syncWallet(); toast(`${name} connected`);
       } catch (err) {
+        if (!isNo(err)) report('connect-failed', { wallet: name, attempts, final: errText(err) });
         toast(isNo(err) ? 'Connection cancelled in your wallet' : IS_MOBILE ? `${name}'s in-app browser refused (${errText(err).slice(0, 80)}). Open heistpad.live in Safari or Chrome and tap Connect: it will use the ${name} app instead.` : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 12000);
       } finally { clearTimeout(slow); }
     })();
@@ -404,6 +415,7 @@
     } catch (err) {
       const m = String(err?.message || err);
       setSteps(null); setErr(/reject|cancel|denied|declined/i.test(m) ? 'You cancelled in your wallet. Nothing was sent.' : m);
+      if (!/reject|cancel|denied|declined/i.test(m)) report('launch-failed', { message: m, code: err?.code ?? null, via: dlSession && !provider ? 'phantom-app' : stdW ? 'standard' : 'injected' });
     } finally { busy = false; syncGo(); }
   });
   async function finishLaunch(p) {
@@ -428,7 +440,7 @@
     const q = new URLSearchParams(location.search), step = q.get('pd'); if (!step) return;
     await new Promise((r) => setTimeout(r, 0)); // let the rest of the page finish setting up first
     history.replaceState(null, '', location.pathname + location.hash);
-    if (q.get('errorCode')) { DL.pending(null); toast(/4001|reject/i.test(q.get('errorCode') + q.get('errorMessage')) ? 'Cancelled in Phantom. Nothing was sent.' : `Phantom: ${q.get('errorMessage') || q.get('errorCode')}`, 9000); return; }
+    if (q.get('errorCode')) { report('deeplink-error', { step, errorCode: q.get('errorCode'), errorMessage: q.get('errorMessage') }); DL.pending(null); toast(/4001|reject/i.test(q.get('errorCode') + q.get('errorMessage')) ? 'Cancelled in Phantom. Nothing was sent.' : `Phantom: ${q.get('errorMessage') || q.get('errorCode')}`, 9000); return; }
     try {
       if (step === 'connect') {
         const d = DL.get(); d.phantomPub = q.get('phantom_encryption_public_key');
