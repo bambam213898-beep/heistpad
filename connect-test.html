@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wallet test</title>
+<style>body{margin:0;font:16px/1.5 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px}button{font:inherit;font-weight:700;padding:16px 20px;border:0;border-radius:12px;background:#ffc83d;color:#111;width:100%}pre{white-space:pre-wrap;background:#222;padding:12px;border-radius:10px;font-size:13px}</style>
+</head><body>
+<h2>Wallet connection test</h2>
+<p>Tap the button once. The result is sent to the Heistpad team automatically.</p>
+<button id="go">Connect wallet</button>
+<pre id="out">waiting…</pre>
+<script>
+const API = 'https://heistpad-api.heistpad-api.workers.dev';
+const out = document.getElementById('out');
+const send = (r) => fetch(API + '/api/diag', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'test-page', page: location.host + location.pathname, ua: navigator.userAgent, at: new Date().toISOString(), ...r }) }).catch(() => {});
+document.getElementById('go').onclick = async () => {
+  const p = window.phantom && window.phantom.solana || window.solana;
+  if (!p) { out.textContent = 'No wallet found in this browser.'; send({ result: 'no-wallet' }); return; }
+  out.textContent = 'Asking wallet…';
+  try {
+    const r = await p.connect();
+    const pk = String((r && r.publicKey) || p.publicKey);
+    out.textContent = 'CONNECTED ✓\n' + pk.slice(0, 4) + '…' + pk.slice(-4);
+    send({ result: 'connected' });
+  } catch (e) {
+    out.textContent = 'FAILED ✗\n' + (e && e.message) + (e && e.code != null ? ' [code ' + e.code + ']' : '');
+    send({ result: 'failed', message: String(e && e.message), code: e && e.code != null ? e.code : null });
+  }
+};
+</script>
+</body></html>
