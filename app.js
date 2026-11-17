@@ -206,6 +206,36 @@
   const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   const b58 = (bytes) => { let n = 0n; for (const x of bytes) n = n * 256n + BigInt(x); let out = ''; while (n > 0n) { out = B58[Number(n % 58n)] + out; n /= 58n; } for (const x of bytes) { if (x === 0) out = '1' + out; else break; } return out; };
   let stdW = null, stdAcct = null; // set when connected through Wallet Standard
+  const b58d = (str) => { let n = 0n; for (const ch of str) { const v = B58.indexOf(ch); if (v < 0) throw new Error('bad base58'); n = n * 58n + BigInt(v); } const bytes = []; while (n > 0n) { bytes.unshift(Number(n % 256n)); n /= 256n; } for (const ch of str) { if (ch === '1') bytes.unshift(0); else break; } return new Uint8Array(bytes); };
+
+  /* Phantom phone app via deep links: works from Safari/Chrome on a phone, no in-app browser needed.
+     The page hands off to the Phantom app, which sends the user back here with an encrypted answer. */
+  const DL = {
+    get: () => { try { return JSON.parse(localStorage.getItem('hp.phantom') || 'null'); } catch (_) { return null; } },
+    set: (v) => { try { v ? localStorage.setItem('hp.phantom', JSON.stringify(v)) : localStorage.removeItem('hp.phantom'); } catch (_) {} },
+    pending: (v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem('hp.pending') || 'null'); v ? localStorage.setItem('hp.pending', JSON.stringify(v)) : localStorage.removeItem('hp.pending'); } catch (_) { return null; } },
+  };
+  let dlSession = null; // { wallet, session, phantomPub } when connected via the Phantom app
+  const dlKeys = () => { let d = DL.get() || {}; if (!d.sec) { const kp = nacl.box.keyPair(); d = { pub: b58(kp.publicKey), sec: Array.from(kp.secretKey) }; DL.set(d); } return d; };
+  const dlShared = (d) => nacl.box.before(b58d(d.phantomPub), Uint8Array.from(d.sec));
+  const dlBack = (step) => `${location.origin}${location.pathname}?pd=${step}`;
+  function dlConnect() {
+    const d = dlKeys();
+    const q = new URLSearchParams({ app_url: location.origin, dapp_encryption_public_key: d.pub, redirect_link: dlBack('connect'), cluster: 'mainnet-beta' });
+    location.href = `https://phantom.app/ul/v1/connect?${q}`;
+  }
+  function dlSign(tx, pendingLaunch) {
+    const d = DL.get(); const nonce = nacl.randomBytes(24);
+    const payload = new TextEncoder().encode(JSON.stringify({ transaction: b58(tx.serialize()), session: d.session }));
+    const enc = nacl.box.after(payload, nonce, dlShared(d));
+    DL.pending(pendingLaunch);
+    const q = new URLSearchParams({ dapp_encryption_public_key: d.pub, nonce: b58(nonce), redirect_link: dlBack('sign'), payload: b58(enc) });
+    location.href = `https://phantom.app/ul/v1/signAndSendTransaction?${q}`;
+    return new Promise(() => {}); // the page is leaving for the Phantom app
+  }
+  function dlOpen(q, d) { const out = nacl.box.open.after(b58d(q.get('data')), b58d(q.get('nonce')), dlShared(d)); if (!out) throw new Error('Could not read the answer from Phantom'); return JSON.parse(new TextDecoder().decode(out)); }
+  // restore a Phantom-app session from an earlier visit
+  (() => { const d = DL.get(); if (d?.session && d.wallet) { dlSession = d; } })();
 
   async function waitProvider(ms = 2500) { const t0 = Date.now(); let p; while (!(p = getProvider()) && !stdWallet() && Date.now() - t0 < ms) await new Promise((r) => setTimeout(r, 150)); return p; }
   const errText = (err) => { const m = String(err?.message || err || 'unknown error'); return err?.code != null ? `${m} [code ${err.code}]` : m; };
@@ -215,7 +245,7 @@
     connecting = (async () => {
       provider = getProvider() || (IS_MOBILE || IN_WALLET_APP ? await waitProvider() : null);
       const sw = stdWallet();
-      if (!provider && !sw) { $('#noWallet').hidden = false; return; }
+      if (!provider && !sw) { if (IS_MOBILE) { toast('Opening the Phantom app… approve, then you\'ll come back here'); dlConnect(); return; } $('#noWallet').hidden = false; return; }
       const name = provider ? (provider.isPhantom ? 'Phantom' : provider.isSolflare ? 'Solflare' : provider.isBackpack ? 'Backpack' : 'your wallet') : sw.name;
       toast(`Opening ${name}… approve the request`);
       const hint = IS_MOBILE ? `${name} hasn't answered. Check for the ${name} prompt, or close and reopen heistpad.live in ${name}'s browser.` : `${name} hasn't answered. Click the ${name} icon in Chrome's toolbar: unlock it or find the request (the pop-up can open behind this window).`;
@@ -235,13 +265,14 @@
         if (!addr) throw new Error(errors[0] || 'no connection method worked');
         wallet = new W3.PublicKey(addr); syncWallet(); toast(`${name} connected`);
       } catch (err) {
-        toast(isNo(err) ? 'Connection cancelled in your wallet' : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 10000);
+        toast(isNo(err) ? 'Connection cancelled in your wallet' : IS_MOBILE ? `${name}'s in-app browser refused (${errText(err).slice(0, 80)}). Open heistpad.live in Safari or Chrome and tap Connect: it will use the ${name} app instead.` : `Couldn't connect (${name}): ${errText(err).slice(0, 140)}`, 12000);
       } finally { clearTimeout(slow); }
     })();
     try { await connecting; } finally { connecting = null; }
   }
   // sign + send through whichever connection worked; returns the base58 signature
-  async function signAndSend(tx) {
+  async function signAndSend(tx, pendingLaunch) {
+    if (dlSession && !provider && !stdW) return dlSign(tx, pendingLaunch);
     if (stdW) {
       const [out] = await stdW.features['solana:signAndSendTransaction'].signAndSendTransaction({ account: stdAcct, transaction: tx.serialize(), chain: 'solana:mainnet' });
       return typeof out.signature === 'string' ? out.signature : b58(out.signature);
@@ -253,6 +284,7 @@
   $('#walletBtn').addEventListener('click', async () => {
     if (!wallet) return connectWallet();
     try { if (stdW) await stdW.features['standard:disconnect']?.disconnect(); else await provider?.disconnect?.(); } catch (_) {}
+    if (dlSession) { DL.set({ ...DL.get(), session: null, wallet: null, phantomPub: null }); dlSession = null; }
     wallet = null; stdW = null; stdAcct = null; syncWallet(); toast('Wallet disconnected');
   });
   if (!IS_MOBILE && !IN_WALLET_APP) setTimeout(async () => { // quietly reconnect a trusted wallet (desktop only: phone wallets reject overlapping requests)
@@ -364,28 +396,56 @@
       // 3. user approves in their own wallet
       setSteps('sign');
       let signature;
-      signature = await signAndSend(tx);
+      signature = await signAndSend(tx, { bizId: b.id, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol, name: b.name });
       if (typeof signature !== 'string') throw new Error('Your wallet did not return a transaction signature.');
       // 4. wait for the chain, then record the claim
       setSteps('confirm');
-      let ok = null;
-      for (let i = 0; i < 40 && !ok; i++) {
-        await new Promise((r) => setTimeout(r, i ? 3000 : 2000));
-        const r = await fetch(`${API}/api/confirm`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bizId: b.id, signature, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token }) });
-        const j = await r.json(); if (r.status === 202) continue; if (!r.ok) throw new Error(j.error); ok = j;
-      }
-      if (!ok) throw new Error(`Still confirming. Your transaction: ${signature.slice(0, 8)}… Refresh in a minute.`);
-      $$('#lfSteps li').forEach((li) => (li.className = 'ok'));
-      await loadCoins();
-      modal.hidden = true; setSteps(null);
-      $('#psTxt').textContent = `${b.name} is yours · $${rsv.symbol} is live on pump.fun · + RESPECT`;
-      $('#passed').hidden = false; sfx.passed(); flashStars(); hud();
-      map?.flyTo({ center: [b.lng, b.lat], zoom: 12.5 });
+      await finishLaunch({ bizId: b.id, signature, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol });
     } catch (err) {
       const m = String(err?.message || err);
       setSteps(null); setErr(/reject|cancel|denied|declined/i.test(m) ? 'You cancelled in your wallet. Nothing was sent.' : m);
     } finally { busy = false; syncGo(); }
   });
+  async function finishLaunch(p) {
+    const b = BIZ.find((x) => x.id === p.bizId);
+    let ok = null;
+    for (let i = 0; i < 40 && !ok; i++) {
+      await new Promise((r) => setTimeout(r, i ? 3000 : 2000));
+      const r = await fetch(`${API}/api/confirm`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bizId: p.bizId, signature: p.signature, mint: p.mint, creator: p.creator, token: p.token }) });
+      const j = await r.json(); if (r.status === 202) continue; if (!r.ok) throw new Error(j.error); ok = j;
+    }
+    if (!ok) throw new Error(`Still confirming. Your transaction: ${p.signature.slice(0, 8)}… Refresh in a minute.`);
+    $$('#lfSteps li').forEach((li) => (li.className = 'ok'));
+    await loadCoins();
+    modal.hidden = true; setSteps(null);
+    $('#psTxt').textContent = `${b ? b.name : 'Your business'} is yours · $${p.symbol} is live on pump.fun · + RESPECT`;
+    $('#passed').hidden = false; sfx.passed(); flashStars(); hud();
+    if (b) map?.flyTo({ center: [b.lng, b.lat], zoom: 12.5 });
+  }
+
+  // back from the Phantom app: finish connecting, or finish the launch it just signed
+  (async () => {
+    const q = new URLSearchParams(location.search), step = q.get('pd'); if (!step) return;
+    await new Promise((r) => setTimeout(r, 0)); // let the rest of the page finish setting up first
+    history.replaceState(null, '', location.pathname + location.hash);
+    if (q.get('errorCode')) { DL.pending(null); toast(/4001|reject/i.test(q.get('errorCode') + q.get('errorMessage')) ? 'Cancelled in Phantom. Nothing was sent.' : `Phantom: ${q.get('errorMessage') || q.get('errorCode')}`, 9000); return; }
+    try {
+      if (step === 'connect') {
+        const d = DL.get(); d.phantomPub = q.get('phantom_encryption_public_key');
+        const ans = dlOpen(q, d); d.session = ans.session; d.wallet = ans.public_key; DL.set(d); dlSession = d;
+        wallet = new W3.PublicKey(ans.public_key); syncWallet(); toast('Phantom connected');
+      } else if (step === 'sign') {
+        const d = DL.get(), pending = DL.pending(); DL.pending(null);
+        const ans = dlOpen(q, d);
+        if (!pending) throw new Error('Launch details were lost. Your transaction: ' + ans.signature);
+        modal.hidden = false; setErr(''); setSteps('confirm');
+        await finishLaunch({ ...pending, signature: ans.signature });
+      }
+    } catch (err) { setSteps(null); toast(String(err?.message || err), 10000); }
+  })();
+  // a Phantom-app session from an earlier visit counts as connected
+  if (dlSession && !wallet) { try { wallet = new W3.PublicKey(dlSession.wallet); setTimeout(syncWallet, 0); } catch (_) {} }
+
   $('[data-close-passed]').onclick = () => { $('#passed').hidden = true; $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
 
   /* ---------- live tokenized $TTWO ---------- */
