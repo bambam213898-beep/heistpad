@@ -416,13 +416,7 @@
     }
   }
   let solUsd = 0;
-  async function loadVault() {
-    if (!CFG.vault) { $('#vHold').textContent = 'opens at launch'; $('#vVal').textContent = '$0'; $('#stVault').textContent = '$0'; return; }
-    try {
-      const sol = (await rpcCall('getBalance', [CFG.vault])).value / 1e9;
-      $('#vHold').textContent = `${sol.toFixed(3)} SOL`; $('#vVal').textContent = fmt$(sol * solUsd); $('#stVault').textContent = fmt$(sol * solUsd);
-    } catch (_) { $('#vHold').textContent = '—'; }
-  }
+  async function loadVault() {} // the Vault's wallet balance is no longer shown on the site
   loadTTWO(); setInterval(loadTTWO, 30000);
 
   /* nav highlight */
