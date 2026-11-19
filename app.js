@@ -34,6 +34,8 @@
   let CFG = { live: false, vault: null, feeLamports: 20_000_000 };
   const hashColor = (s) => PALETTE[[...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) % PALETTE.length];
   const pumpUrl = (mint) => `https://pump.fun/coin/${mint}`;
+  // IPFS images go through the API's cached proxy (public gateways rate-limit visitors)
+  const ipfsImg = (u) => String(u || '').replace(/^https:\/\/[^/]+\/ipfs\//, `${API}/ipfs/`);
   const now = Date.now();
 
   /* ---------- helpers ---------- */
@@ -605,7 +607,7 @@
       for (const c of d.coins) {
         const b = BIZ.find((x) => x.id === c.bizId); if (!b) continue; seen.add(b.id);
         const prev = b.coin, delta = lastVSol.has(c.mint) && c.vSol != null ? c.vSol - lastVSol.get(c.mint) : 0;
-        b.coin = { name: c.name || c.symbol, tick: c.symbol, cap: c.mcapUsd || 0, vol: (prev?.vol || 0) + Math.abs(delta) * 10 + (prev ? 0 : Math.min(40, (c.realSol || 0) * 4)), ca: c.mint, color: hashColor(c.mint), born: c.createdAt, img: c.image ? c.image.replace('https://ipfs.io/ipfs/', 'https://gateway.pinata.cloud/ipfs/') : null, progress: c.progress, complete: c.complete, creator: c.creator, mine: wallet && c.creator === wallet.toBase58() };
+        b.coin = { name: c.name || c.symbol, tick: c.symbol, cap: c.mcapUsd || 0, vol: (prev?.vol || 0) + Math.abs(delta) * 10 + (prev ? 0 : Math.min(40, (c.realSol || 0) * 4)), ca: c.mint, color: hashColor(c.mint), born: c.createdAt, img: c.image ? ipfsImg(c.image) : null, progress: c.progress, complete: c.complete, creator: c.creator, mine: wallet && c.creator === wallet.toBase58() };
         if (c.vSol != null) lastVSol.set(c.mint, c.vSol);
         if (!firstLoad && Math.abs(delta) > 0.001) pushEvent(b, delta > 0, Math.abs(delta));
       }
@@ -658,7 +660,7 @@
   ];
   const ID_PH = { psn: 'Your PSN Online ID', xbox: 'Your Xbox gamertag (e.g. MurdaMan#1234)', steam: 'steamcommunity.com link, SteamID64 or name', rockstar: 'Your Rockstar Games ID', epic: 'Your Epic display name' };
   const tickerOf = (n) => { let t = String(n).toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim(); if (t.replace(/ /g, '').length > 10) t = t.replace(/^THE\s+/, ''); return t.replace(/ /g, '').slice(0, 10); };
-  const gw = (u) => (u || '').replace('https://ipfs.io/ipfs/', 'https://gateway.pinata.cloud/ipfs/');
+  const gw = ipfsImg;
   const STATUS = { pending: 'IN REVIEW', approved: 'VERIFIED', rejected: 'REJECTED', launched: 'COIN LIVE' };
   let HEISTS = { board: [], mine: [] };
   function renderPlats() {
