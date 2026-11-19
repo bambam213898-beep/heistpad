@@ -4,25 +4,13 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-  /* ---------- regions & businesses ---------- */
+  /* ---------- Leonida regions (the six Rockstar has named) ---------- */
   const REGIONS = [
-    { id: 'miami', name: 'Miami', blurb: 'Nightclubs, car lots, marinas and the bank towers downtown.', c: [-80.2, 25.79], z: 10.2 },
-    { id: 'keys', name: 'The Keys', blurb: 'Bait shops, dive bars and charter boats down the Overseas Highway.', c: [-81.2, 24.72], z: 8.4 },
-    { id: 'glades', name: 'Everglades', blurb: 'Airboats, gator farms and the last gas for miles.', c: [-80.85, 25.95], z: 8.8 },
-    { id: 'gulf', name: 'Gulf Coast', blurb: 'Tampa docks, cigar rollers, strip malls and the bay bridges.', c: [-82.5, 27.92], z: 9.4 },
-    { id: 'space', name: 'Space Coast', blurb: 'Launch pads, surf shops and motels on A1A.', c: [-80.65, 28.35], z: 9 },
-    { id: 'pan', name: 'Panhandle', blurb: 'Beach motels, shipyards and seafood shacks on the Gulf.', c: [-86.2, 30.38], z: 8.6 },
+    { id: 'vice', name: 'Vice City' }, { id: 'keys', name: 'Leonida Keys' }, { id: 'grass', name: 'Grassrivers' },
+    { id: 'gellhorn', name: 'Port Gellhorn' }, { id: 'ambrosia', name: 'Ambrosia' }, { id: 'kalaga', name: 'Mount Kalaga' }, { id: 'other', name: 'Elsewhere in Leonida' },
   ];
-  const RAW = {
-    miami: [['Neon Palms Nightclub', 'Nightclub', -80.1340, 25.7826], ['Coral Coast Motors', 'Car dealership', -80.2210, 25.8010], ['Bayfront Slip Marina', 'Yacht marina', -80.1860, 25.7780], ['Bull & Bear Trading Floor', 'Trading floor', -80.1918, 25.7680], ['Lucky Seven Casino', 'Casino', -80.2120, 25.8460], ['Flamingo Deco Hotel', 'Hotel', -80.1300, 25.7900], ['Gold Coast Jewelers', 'Jeweler', -80.1950, 25.7740], ['Ink & Palm Tattoo', 'Tattoo parlor', -80.1990, 25.8020], ['Little Havana Café', 'Café', -80.2190, 25.7660], ['Overtown Studio B', 'Recording studio', -80.2010, 25.7880], ['Biscayne Chop Shop', 'Body shop', -80.2420, 25.8200], ['Hialeah Speedway Diner', 'Diner', -80.2780, 25.8580], ['Port Cargo Terminal', 'Shipping yard', -80.1640, 25.7740], ['Wynwood Sneaker Vault', 'Sneaker store', -80.1990, 25.8010], ['Key Biscayne Yacht Club', 'Yacht club', -80.1620, 25.6930], ['Coconut Grove Pawn', 'Pawn shop', -80.2400, 25.7300]],
-    keys: [['Mile Marker 7 Bait', 'Bait shop', -81.66, 24.66], ['Duval Dive Bar', 'Dive bar', -81.80, 24.556], ['Islamorada Charters', 'Charter boats', -80.62, 24.92], ['Marathon Seafood Co.', 'Seafood market', -81.08, 24.72], ['Seven Mile Fuel', 'Gas station', -81.25, 24.70], ['Key Largo Reef Divers', 'Dive shop', -80.44, 25.09]],
-    glades: [['Gator Gus Airboats', 'Airboat tour', -80.75, 25.76], ['Last Gas Shell', 'Gas station', -81.00, 26.13], ['Swamp King Gator Farm', 'Gator farm', -80.50, 25.95], ['Shark Valley Outpost', 'Trading post', -80.77, 25.75], ['Everglades City Shack', 'Seafood shack', -81.38, 25.86]],
-    gulf: [['Ybor Cigar Rollers', 'Cigar factory', -82.437, 27.960], ['Channelside Docks', 'Port docks', -82.450, 27.943], ['Bay Bridge Motel', 'Motel', -82.62, 27.80], ['Clearwater Pier Arcade', 'Arcade', -82.83, 27.98], ['St. Pete Strip Mall', 'Strip mall', -82.68, 27.77], ['Sarasota Speedboats', 'Boat dealer', -82.55, 27.33]],
-    space: [['Pad 39 Diner', 'Diner', -80.62, 28.55], ['Cocoa Beach Surf Shack', 'Surf shop', -80.61, 28.32], ['A1A Rocket Motel', 'Motel', -80.60, 28.40], ['Orbit Bowl & Bar', 'Bowling alley', -80.72, 28.08], ['Titusville Tackle', 'Bait shop', -80.81, 28.61]],
-    pan: [['Gulf Breeze Shipyard', 'Shipyard', -87.17, 30.35], ['Destin Oyster Shack', 'Seafood shack', -86.49, 30.39], ['PCB Beach Motel', 'Motel', -85.80, 30.18], ['Pensacola Pawn & Gun', 'Pawn shop', -87.22, 30.42], ['Apalachicola Smokehouse', 'Smokehouse', -84.98, 29.73]],
-  };
+  // Every live coin is a slot: a heist or a business that a player found in the game, verified, then launched.
   const BIZ = [];
-  for (const [rid, list] of Object.entries(RAW)) list.forEach(([name, type, lng, lat], i) => BIZ.push({ id: `${rid}-${i}`, rid, name, type, lng, lat, coin: null }));
 
   /* ---------- demo coins ---------- */
   const PALETTE = ['#ff3d8b', '#ffc83d', '#2de2c8', '#9b7bff', '#ff8a3d', '#3ee08f', '#ff6a5c'];
@@ -42,7 +30,7 @@
   const shortCa = (c) => `${c.slice(0, 6)}…${c.slice(-6)}`;
   const ago = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)); return m < 60 ? `${m}m` : `${Math.round(m / 60)}h`; };
   const stars = (vol) => { const n = Math.min(6, Math.max(1, Math.ceil(vol / 7.5))); return `<span class="stars" title="Wanted level ${n}/6">${[1, 2, 3, 4, 5, 6].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`; };
-  const regionName = (rid) => REGIONS.find((r) => r.id === rid).name;
+  const regionName = (rid) => (REGIONS.find((r) => r.id === rid) || { name: 'Leonida' }).name;
   const coins = () => BIZ.filter((b) => b.coin);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toast = (msg, ms = 2200) => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); };
@@ -57,27 +45,28 @@
 
   /* ---------- stats / lists ---------- */
   let sortBy = 'new';
+  // what a coin is: look it up on the heist/business board by its mint
+  const meta = (b) => { const h = HEISTS.board.find((x) => x.mint === b.coin.ca); return h ? { kind: h.kind, label: h.kind === 'business' ? `Business · ${h.regionName || 'Leonida'}` : `Heist · by ${h.gamertag}`, name: h.heist } : { kind: 'legacy', label: 'Early Heistpad coin', name: b.coin.name }; };
+  const bizList = () => HEISTS.board.filter((h) => h.kind === 'business');
   function renderAll() {
     const cs = coins();
-    const total = cs.reduce((a, b) => a + b.coin.cap, 0);
-    $('#bizCount').textContent = BIZ.length;
-    $('#stCoins').textContent = cs.length + (window.hpHeistCoins || 0);
-    $('#stCap').textContent = `${fmt$(total)} mcap`;
-    $('#stOpen').textContent = BIZ.length - cs.length;
+    $('#bizCount').textContent = bizList().length;
+    $('#stCoins').textContent = cs.length;
+    $('#stOpen').textContent = bizList().length;
 
     const sorted = [...cs].sort((a, b) => sortBy === 'new' ? b.coin.born - a.coin.born : sortBy === 'heat' ? b.coin.vol - a.coin.vol : b.coin.cap - a.coin.cap);
-    $('#cards').innerHTML = !cs.length ? `<div class="empty"><b>No business coins yet.</b><span>All ${BIZ.length} businesses are open. The first crew to launch a coin runs the business.</span><button type="button" class="btn primary" data-launch>Be the first crew →</button></div>` : sorted.slice(0, 12).map((b) => `
+    $('#cards').innerHTML = !cs.length ? `<div class="empty"><b>No coins yet.</b><span>Prove a heist or add a business you found in Leonida. Once it's verified, you launch its coin.</span><button type="button" class="btn primary" data-heist-submit>Submit proof →</button></div>` : sorted.slice(0, 12).map((b) => { const m = meta(b); return `
       <article class="card" data-biz="${b.id}">
-        <div class="c-top">${avatar(b.coin)}<div><h4>${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</h4><small>$${esc(b.coin.tick)}</small></div><span class="c-age">${ago(b.coin.born)}</span></div>
-        <div class="c-biz"><b>${esc(b.name)}</b> · ${regionName(b.rid)}</div>
+        <div class="c-top">${avatar(b.coin)}<div><h4>${esc(m.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</h4><small>$${esc(b.coin.tick)}</small></div><span class="c-age">${ago(b.coin.born)}</span></div>
+        <div class="c-biz">${esc(m.label)}</div>
         <div class="c-mid"><span class="c-cap">${fmt$(b.coin.cap)}</span>${stars(b.coin.vol)}</div>
         <div class="bar" title="Bonding curve progress"><i style="width:${Math.max(3, (b.coin.progress || 0) * 100)}%"></i></div>
         <div class="prog">${b.coin.complete ? 'Graduated <span class="grad">LIVE ON DEX</span>' : `${((b.coin.progress || 0) * 100).toFixed(1)}% to graduation`}</div>
         <div class="c-bot"><a class="btn primary" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy on pump.fun</a><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>
-      </article>`).join('');
+      </article>`; }).join('');
 
     const emptyLi = '<li class="empty-li"><span>Nobody yet. Could be you.<small>Launch a coin to take the top spot</small></span><b>—</b></li>';
-    $('#bizBoard').innerHTML = !cs.length ? emptyLi : [...cs].sort((a, b) => b.coin.cap - a.coin.cap).slice(0, 6).map((b) => `<li><span>${esc(b.name)}<small>${esc(b.type)} · ${regionName(b.rid)}</small></span><b>${fmt$(b.coin.cap)}</b></li>`).join('');
+    $('#bizBoard').innerHTML = !cs.length ? emptyLi : [...cs].sort((a, b) => b.coin.cap - a.coin.cap).slice(0, 6).map((b) => { const m = meta(b); return `<li><span>${esc(m.name)}<small>$${esc(b.coin.tick)} · ${esc(m.label)}</small></span><b>${fmt$(b.coin.cap)}</b></li>`; }).join('');
     $('#crewBoard').innerHTML = !cs.length ? emptyLi : [...cs].sort((a, b) => b.coin.vol - a.coin.vol).slice(0, 6).map((b) => `<li><span>$${esc(b.coin.tick)}<small>${stars(b.coin.vol)}</small></span><b>${fmt$(b.coin.vol * 310)} vol</b></li>`).join('');
     renderDir();
   }
@@ -86,27 +75,33 @@
     sortBy = b.dataset.sort; $$('#sortTabs button').forEach((x) => x.classList.toggle('on', x === b)); renderAll();
   });
 
-  /* ---------- business directory (replaces the old map) ---------- */
+  /* ---------- businesses: added by players from the real game, by Leonida region ---------- */
   let dirRegion = 'all', dirQuery = '';
   function renderFilters() {
-    const n = (rid) => BIZ.filter((b) => rid === 'all' || b.rid === rid).length;
+    const n = (rid) => bizList().filter((b) => rid === 'all' || b.region === rid).length;
     $('#regionFilters').innerHTML = [{ id: 'all', name: 'All' }, ...REGIONS].map((r) => `<button type="button" data-r="${r.id}" class="${r.id === dirRegion ? 'on' : ''}">${r.name}<small>${n(r.id)}</small></button>`).join('');
   }
   function renderDir() {
-    const q = dirQuery.trim().toLowerCase();
-    const list = BIZ.filter((b) => (dirRegion === 'all' || b.rid === dirRegion) && (!q || `${b.name} ${b.type} ${regionName(b.rid)} ${b.coin ? b.coin.tick : ''}`.toLowerCase().includes(q)))
-      .sort((a, b) => (!!a.coin - !!b.coin) || a.name.localeCompare(b.name));
-    $('#bizGrid').innerHTML = !list.length ? '<p class="bz-none">No businesses match that search.</p>' : list.map((b) => `
-      <div class="bz" id="${b.id}">
-        <div class="bz-top"><div><h4>${esc(b.name)}</h4><small>${esc(b.type)} · ${regionName(b.rid)}</small></div>${b.coin ? '<span class="st-taken">TAKEN</span>' : '<span class="st-open">OPEN</span>'}</div>
-        ${b.coin
-          ? `<div class="bz-coin">${avatar(b.coin)}<b>$${esc(b.coin.tick)}</b><span style="color:var(--mut)">${fmt$(b.coin.cap)}</span>${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</div><div class="bz-bot"><a class="btn ghost" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy $${esc(b.coin.tick)}</a></div>`
-          : `<div class="bz-bot"><button type="button" class="btn ghost" data-launch="${b.id}">Launch this coin →</button></div>`}
-      </div>`).join('');
+    renderFilters();
+    const q = dirQuery.trim().toLowerCase(), all = bizList();
+    const list = all.filter((b) => (dirRegion === 'all' || b.region === dirRegion) && (!q || `${b.heist} ${b.regionName} ${b.ticker} ${b.gamertag}`.toLowerCase().includes(q)))
+      .sort((a, b) => (!!b.mint - !!a.mint) || (b.mcapUsd || 0) - (a.mcapUsd || 0) || a.heist.localeCompare(b.heist));
+    const me = wallet ? wallet.toBase58() : '';
+    $('#bizGrid').innerHTML = !all.length
+      ? `<div class="hs-empty"><b>No businesses added yet.</b><span>Found a business in Leonida? Add it with a screenshot. Once it's verified, you launch its coin.</span><button type="button" class="btn primary" data-heist-submit="business">Add a business →</button></div>`
+      : !list.length ? '<p class="bz-none">No businesses match that.</p>' : list.map((b) => {
+        const mine = HEISTS.mine.find((x) => x.id === b.id);
+        return `
+      <div class="bz">
+        <div class="bz-top"><div><h4>${esc(b.heist)}</h4><small>${esc(b.regionName || 'Leonida')} · added by ${esc(b.gamertag)}</small></div>${b.mint ? '<span class="st-taken">COIN LIVE</span>' : '<span class="st-open">VERIFIED</span>'}</div>
+        ${b.mint
+          ? `<div class="bz-coin">${b.image ? `<div class="av" style="background-image:url(${gw(b.image)})"></div>` : ''}<b>$${esc(b.ticker)}</b><span style="color:var(--mut)">${fmt$(b.mcapUsd || 0)}</span></div><div class="bz-bot"><a class="btn ghost" href="${pumpUrl(b.mint)}" target="_blank" rel="noopener">Buy $${esc(b.ticker)}</a></div>`
+          : mine && mine.status === 'approved' ? `<div class="bz-bot"><button type="button" class="btn primary" data-heist-launch="${b.id}">Launch $${esc(b.ticker)} →</button></div>`
+          : `<div class="bz-coin"><b>$${esc(b.ticker)}</b><span style="color:var(--mut)">launching soon</span></div>`}
+      </div>`; }).join('');
   }
-  $('#regionFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; dirRegion = b.dataset.r; renderFilters(); renderDir(); });
+  $('#regionFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; dirRegion = b.dataset.r; renderDir(); });
   $('#bizSearch').addEventListener('input', (e) => { dirQuery = e.target.value; renderDir(); });
-  renderFilters();
 
   /* ---------- wallet ---------- */
   let wallet = null, provider = null, busy = false;
@@ -249,29 +244,19 @@
     heistMode = h;
     $('#lfBizL').hidden = !!h; $('#lfBiz').required = !h;
     $('#lfName').readOnly = $('#lfTick').readOnly = !!h;
-    $('#lfKick').textContent = h ? 'HEIST VERIFIED' : 'PULL A JOB';
-    $('#lfTitle').textContent = h ? 'Launch your heist coin' : 'Launch a coin';
+    const biz = !!h && h.kind === 'business';
+    $('#lfKick').textContent = h ? (biz ? 'BUSINESS VERIFIED' : 'HEIST VERIFIED') : 'PULL A JOB';
+    $('#lfTitle').textContent = h ? (biz ? 'Launch your business coin' : 'Launch your heist coin') : 'Launch a coin';
     const n = $('#lfHeistNote'); n.hidden = !h;
-    if (h) n.innerHTML = `Completed by <b>${esc(h.gamertag)}</b> on ${esc(h.platformLabel)}. The heist name is the coin name and <b>$${esc(h.ticker)}</b> is the ticker.`;
+    if (h) n.innerHTML = `${biz ? `${esc(h.regionName || 'Leonida')} · found` : 'Completed'} by <b>${esc(h.gamertag)}</b> on ${esc(h.platformLabel)}. The ${biz ? 'business' : 'heist'} name is the coin name and <b>$${esc(h.ticker)}</b> is the ticker.`;
   }
   window.hpLaunchHeist = (h) => {
     $('#launchForm').reset(); imgData = null; imgFile = null; setErr(''); setSteps(null); setMode(h); syncGo();
     $('#lfName').value = h.heist.slice(0, 32); $('#lfTick').value = h.ticker;
-    $('#lfImgTxt').textContent = 'Coin image (optional: uses your proof screenshot if empty)';
+    $('#lfImgTxt').textContent = 'Coin image (optional: uses your screenshot if empty)';
     modal.hidden = false;
   };
-  function openLaunch(bizId) {
-    const open = BIZ.filter((b) => !b.coin);
-    $('#launchForm').reset(); setMode(null); imgData = null; imgFile = null; $('#lfImgTxt').textContent = "Pick your coin's image (required)"; setErr(''); setSteps(null); syncGo();
-    if (!open.length) { toast('Every business is taken'); return; }
-    $('#lfBiz').innerHTML = REGIONS.map((r) => {
-      const list = open.filter((b) => b.rid === r.id);
-      return list.length ? `<optgroup label="${r.name}">${list.map((b) => `<option value="${b.id}">${esc(b.name)} — ${esc(b.type)}</option>`).join('')}</optgroup>` : '';
-    }).join('');
-    if (bizId && open.some((b) => b.id === bizId)) $('#lfBiz').value = bizId;
-    else if (bizId) toast('That business was already taken — pick another');
-    modal.hidden = false; setTimeout(() => $('#lfName').focus(), 50);
-  }
+  function openLaunch() { window.hpOpenSubmit?.('business'); }
   /* launches you make are saved in this browser so they survive a refresh */
   const STORE = 'heistpad.launches.v1';
   try { localStorage.removeItem(STORE); } catch (_) {} // clear old demo launches
@@ -383,7 +368,7 @@
     $$('#lfSteps li').forEach((li) => (li.className = 'ok'));
     await loadCoins();
     modal.hidden = true; setSteps(null);
-    $('#psTxt').textContent = p.heist ? `${p.name || 'Your heist'} · $${p.symbol} is live on pump.fun · creator fees are yours` : `${b ? b.name : 'Your business'} is yours · $${p.symbol} is live on pump.fun · + RESPECT`;
+    $('#psTxt').textContent = p.heist ? `${p.name || 'Your coin'} · $${p.symbol} is live on pump.fun · creator fees are yours` : `${b ? b.name : 'Your business'} is yours · $${p.symbol} is live on pump.fun · + RESPECT`;
     $('#passed').hidden = false; sfx.passed(); flashStars(); hud();
     window.dispatchEvent(new Event('hp:launched'));
     setTimeout(() => document.getElementById(p.heist ? 'heists' : 'coins')?.scrollIntoView({ behavior: 'smooth' }), 400);
@@ -497,7 +482,7 @@
   let lastStars = 0;
   const heat = () => { const cs = coins().length; if (!cs) return 0; const recent = events.filter((t) => Date.now() - t < 10 * 60 * 1000).length; return Math.min(6, 1 + Math.floor(recent / 4) + (cs >= 10 ? 1 : 0)); };
   function hud(bump) {
-    const total = coins().reduce((a, b) => a + b.coin.cap, 0) + (window.hpHeistCap || 0);
+    const total = coins().reduce((a, b) => a + b.coin.cap, 0);
     const cash = $('#hudCash'); cash.textContent = '$' + Math.round(total).toLocaleString('en-US');
     if (bump) { cash.classList.add('bump'); setTimeout(() => cash.classList.remove('bump'), 200); }
     const n = heat(); $('#hudStars').innerHTML = [1, 2, 3, 4, 5, 6].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('');
@@ -526,13 +511,13 @@
       solUsd = d.solUsd || solUsd;
       const seen = new Set();
       for (const c of d.coins) {
-        const b = BIZ.find((x) => x.id === c.bizId); if (!b) continue; seen.add(b.id);
+        let b = BIZ.find((x) => x.id === c.bizId); if (!b) { b = { id: c.bizId, name: c.name || c.symbol, coin: null }; BIZ.push(b); } seen.add(b.id);
         const prev = b.coin, delta = lastVSol.has(c.mint) && c.vSol != null ? c.vSol - lastVSol.get(c.mint) : 0;
         b.coin = { name: c.name || c.symbol, tick: c.symbol, cap: c.mcapUsd || 0, vol: (prev?.vol || 0) + Math.abs(delta) * 10 + (prev ? 0 : Math.min(40, (c.realSol || 0) * 4)), ca: c.mint, color: hashColor(c.mint), born: c.createdAt, img: c.image ? ipfsImg(c.image) : null, progress: c.progress, complete: c.complete, creator: c.creator, mine: wallet && c.creator === wallet.toBase58() };
         if (c.vSol != null) lastVSol.set(c.mint, c.vSol);
         if (!firstLoad && Math.abs(delta) > 0.001) pushEvent(b, delta > 0, Math.abs(delta));
       }
-      BIZ.forEach((b) => { if (b.coin && !seen.has(b.id)) b.coin = null; });
+      for (let i = BIZ.length - 1; i >= 0; i--) if (!seen.has(BIZ[i].id)) BIZ.splice(i, 1);
       firstLoad = false; renderAll(); hud(true);
     } catch (_) { /* API unreachable: keep what we have */ }
   }
@@ -573,7 +558,7 @@
   $('#hfTickOwn').addEventListener('input', (e) => {
     const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10); e.target.value = v;
     if (v.length >= 2 && fitsName(v, $('#hfHeist').value)) { pickedTick = v; hErr(''); } else if (v) { pickedTick = ''; }
-    renderTickPick(); if (v.length >= 2 && !pickedTick) $('#hfTick').textContent = 'use letters from the heist name, in order';
+    renderTickPick(); if (v.length >= 2 && !pickedTick) $('#hfTick').textContent = 'use letters from the name, in order';
   });
   const gw = ipfsImg;
   const STATUS = { pending: 'IN REVIEW', approved: 'VERIFIED', rejected: 'REJECTED', launched: 'COIN LIVE' };
@@ -592,17 +577,16 @@
   $('#hfHeist').addEventListener('input', () => { $('#hfTickOwn').value = ''; renderTickPick(); });
   function renderHeists() {
     const { board, mine } = HEISTS;
-    window.hpHeistCoins = board.filter((h) => h.status === 'launched').length;
-    window.hpHeistCap = board.reduce((a, h) => a + (h.mcapUsd || 0), 0); hud();
-    $('#stHeists').textContent = board.length;
-    $('#stCoins').textContent = coins().length + window.hpHeistCoins;
+    const heists = board.filter((h) => h.kind !== 'business');
+    $('#stHeists').textContent = heists.length;
+    renderAll(); hud();
     const box = $('#hsMine'); box.hidden = !wallet || !mine.length;
-    if (!box.hidden) box.innerHTML = `<h3>Your heists</h3>` + mine.map((h) => `<div class="hm-row"><img src="${esc(gw(h.image || h.proof))}" alt="" loading="lazy"><div class="hm-t"><b>${esc(h.heist)} <span class="tk" style="color:var(--gold);font-family:JetBrains Mono">$${esc(h.ticker)}</span></b><small>${esc(h.gamertag)} · ${esc(h.platformLabel)}</small></div><span class="chip ${h.status}">${STATUS[h.status] || h.status}</span>${
+    if (!box.hidden) box.innerHTML = `<h3>Your submissions</h3>` + mine.map((h) => `<div class="hm-row"><img src="${esc(gw(h.image || h.proof))}" alt="" loading="lazy"><div class="hm-t"><b>${esc(h.heist)} <span class="tk" style="color:var(--gold);font-family:JetBrains Mono">$${esc(h.ticker)}</span></b><small>${h.kind === 'business' ? `Business · ${esc(h.regionName || 'Leonida')}` : 'Heist'} · ${esc(h.gamertag)} · ${esc(h.platformLabel)}</small></div><span class="chip ${h.status}">${STATUS[h.status] || h.status}</span>${
       h.status === 'approved' && h.taken ? `<span class="hm-why" style="width:auto;color:var(--mut)">Another crew launched $${esc(h.ticker)} first</span>` :
       h.status === 'approved' ? `<button type="button" class="btn pink sm" data-heist-launch="${h.id}">Launch $${esc(h.ticker)} →</button>` :
       h.status === 'launched' && h.mint ? `<a class="btn ghost sm" href="${pumpUrl(h.mint)}" target="_blank" rel="noopener">View on pump.fun</a>` :
-      h.status === 'rejected' ? `<button type="button" class="btn ghost sm" data-heist-submit>Send new proof</button>` : ''}${h.status === 'rejected' && h.reason ? `<div class="hm-why">Why: ${esc(h.reason)}</div>` : ''}${h.status === 'pending' ? '<div class="hm-why" style="color:var(--mut)">The crew is checking your proof. This page updates by itself.</div>' : ''}</div>`).join('');
-    $('#hsBoard').innerHTML = !board.length ? `<div class="hs-empty"><b>No verified heists yet.</b><span>GTA VI is out. Be the first crew to prove a heist and launch its ticker.</span><button type="button" class="btn pink" data-heist-submit>Submit heist proof →</button></div>` : board.map((h) => `
+      h.status === 'rejected' ? `<button type="button" class="btn ghost sm" data-heist-submit="${h.kind}">Send new proof</button>` : ''}${h.status === 'rejected' && h.reason ? `<div class="hm-why">Why: ${esc(h.reason)}</div>` : ''}${h.status === 'pending' ? '<div class="hm-why" style="color:var(--mut)">The crew is checking your proof. This page updates by itself.</div>' : ''}</div>`).join('');
+    $('#hsBoard').innerHTML = !heists.length ? `<div class="hs-empty"><b>No verified heists yet.</b><span>GTA VI is out. Be the first crew to prove a heist and launch its ticker.</span><button type="button" class="btn pink" data-heist-submit>Submit heist proof →</button></div>` : heists.map((h) => `
       <article class="hb"><div class="hb-shot" style="background-image:url('${esc(gw(h.image || h.proof))}')"><span class="chip ${h.status}">${STATUS[h.status]}</span></div>
         <div class="hb-bd"><h4>${esc(h.heist)}</h4><span class="tk">$${esc(h.ticker)}</span>
           <div class="hb-who">by <b>${esc(h.gamertag)}</b> · ${esc(h.platformLabel)}</div>
@@ -620,9 +604,26 @@
   const hErr = (m) => { const e = $('#hfErr'); e.textContent = m || ''; e.hidden = !m; };
   let proofFile = null;
   const syncHGo = (busyH) => { $('#hfGo').disabled = !!busyH; $('#hfGo').innerHTML = busyH ? 'Uploading proof… <span>⏳</span>' : wallet ? 'Submit for review <span>→</span>' : 'Connect wallet to submit <span>→</span>'; };
-  function openHeist() { $('#heistForm').reset(); proofFile = null; $('#hfProofTxt').textContent = 'Completion screen or trophy/achievement unlock (required)'; pickedTick = ''; renderTickPick(); hErr(''); renderPlats(); syncHGo(); hModal.hidden = false; setTimeout(() => $('#hfHeist').focus(), 50); }
+  let subKind = 'heist';
+  function setKind(k) {
+    subKind = k === 'business' ? 'business' : 'heist'; const biz = subKind === 'business';
+    $$('#hfKind button').forEach((b) => b.classList.toggle('on', b.dataset.kind === subKind));
+    $('#hfTitle').textContent = biz ? 'Add a business' : 'Submit proof';
+    $('#hfNameL').firstChild.textContent = biz ? 'Business name ' : 'Heist name ';
+    $('#hfHeist').placeholder = biz ? 'e.g. the sign on the storefront' : 'e.g. The Jewelry Store Job';
+    $('#hfRegL').hidden = !biz;
+    if (!proofFile) $('#hfProofTxt').textContent = biz ? 'Screenshot of the business in the game, name readable (required)' : 'Completion screen or trophy/achievement unlock (required)';
+    $('#hfFine').textContent = biz ? 'Your screenshot, the business and your gamertag are shown publicly once verified. Only real places from GTA VI get approved. Submitting is free.' : 'Your screenshot, heist and gamertag are shown publicly on the Heist Board once verified. Fake or edited proof gets rejected. Submitting is free.';
+  }
+  function openHeist(kind) {
+    $('#heistForm').reset(); proofFile = null; pickedTick = ''; renderTickPick(); hErr(''); renderPlats();
+    $('#hfReg').innerHTML = '<option value="">Pick a region</option>' + REGIONS.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
+    setKind(kind); syncHGo(); hModal.hidden = false; setTimeout(() => $('#hfHeist').focus(), 50);
+  }
+  window.hpOpenSubmit = openHeist;
+  $('#hfKind').addEventListener('click', (e) => { const b = e.target.closest('[data-kind]'); if (b) setKind(b.dataset.kind); });
   document.addEventListener('click', (e) => {
-    if (e.target.closest('[data-heist-submit]')) { e.preventDefault(); openHeist(); return; }
+    const sub = e.target.closest('[data-heist-submit]'); if (sub) { e.preventDefault(); openHeist(sub.dataset.heistSubmit || 'heist'); return; }
     const l = e.target.closest('[data-heist-launch]');
     if (l) { const h = HEISTS.mine.find((x) => x.id === l.dataset.heistLaunch); if (h) window.hpLaunchHeist(h); }
   });
@@ -639,21 +640,23 @@
     if (!wallet) { connectWallet(); return; }
     const heist = $('#hfHeist').value.trim().replace(/\s+/g, ' '), plat = $('#hfPlat').value, gt = $('#hfId').value.trim(), clip = $('#hfClip').value.trim();
     const p = PLATS.find((x) => x.id === plat);
-    if (heist.length < 3) return hErr('Type the heist name exactly as it shows in the game.');
-    if (!pickedTick) return hErr($('#hfTickOwn').value ? 'Your ticker has to use letters from the heist name, in order (e.g. JSJ for The Jewelry Store Job).' : 'The heist name needs at least 2 letters or numbers.');
+    const biz = subKind === 'business', what = biz ? 'business' : 'heist', region = $('#hfReg').value;
+    if (heist.length < 3) return hErr(`Type the ${what} name exactly as it shows in the game.`);
+    if (biz && !region) return hErr('Pick the region the business is in.');
+    if (!pickedTick) return hErr($('#hfTickOwn').value ? `Your ticker has to use letters from the ${what} name, in order.` : `The ${what} name needs at least 2 letters or numbers.`);
     if (!p || p.soon) return hErr('Pick the platform you played on.');
     if (!gt) return hErr(`Add your ${p.idName}.`);
-    if (!proofFile) return hErr('Add a screenshot of the heist completion screen or the trophy/achievement.');
+    if (!proofFile) return hErr(biz ? 'Add a screenshot of the business in the game.' : 'Add a screenshot of the heist completion screen or the trophy/achievement.');
     if (clip && !/^https:\/\//.test(clip)) return hErr('Clip links must start with https://');
     const fd = new FormData();
-    Object.entries({ wallet: wallet.toBase58(), heist, ticker: pickedTick, platform: plat, gamertag: gt, rockstarId: $('#hfRid').value.trim(), clip, note: $('#hfNote').value.trim() }).forEach(([k, v]) => fd.append(k, v));
+    Object.entries({ wallet: wallet.toBase58(), kind: subKind, region: biz ? region : '', heist, ticker: pickedTick, platform: plat, gamertag: gt, rockstarId: $('#hfRid').value.trim(), clip, note: $('#hfNote').value.trim() }).forEach(([k, v]) => fd.append(k, v));
     fd.append('proof', proofFile, proofFile.name);
     syncHGo(true); hErr('');
     try {
       const r = await fetch(`${API}/api/heist/submit`, { method: 'POST', body: fd }); const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'Could not send your proof');
       hModal.hidden = true; await loadHeists();
-      toast(j.heist.status === 'approved' ? `Verified! You can launch $${j.heist.ticker} now.` : `Proof sent. The crew is checking ${j.heist.heist}. You'll see the Launch button here once it's verified.`, 7000);
+      toast(j.heist.status === 'approved' ? `Verified! You can launch $${j.heist.ticker} now.` : `Sent. The crew is checking ${j.heist.heist}. You'll see the Launch button here once it's verified.`, 7000);
       $('#heists').scrollIntoView({ behavior: 'smooth' });
     } catch (err) { hErr(String(err.message || err)); } finally { syncHGo(false); }
   });
@@ -676,7 +679,7 @@
       const info = await rpcCall('getAccountInfo', [creatorVault(wallet).toBase58(), { encoding: 'base64', dataSlice: { offset: 0, length: 0 }, commitment: 'confirmed' }]);
       feeLamports = Math.max(0, (info?.value?.lamports || 0) - RENT0);
       $('#feeAmt').textContent = `${(feeLamports / 1e9).toFixed(4)} SOL`; $('#feeUsd').textContent = solUsd ? `≈ ${fmt$(feeLamports / 1e9 * solUsd)}` : '';
-      const me = wallet.toBase58(), mineBiz = coins().filter((b) => b.coin.creator === me).length, mineH = HEISTS.mine.filter((h) => h.status === 'launched').length;
+      const me = wallet.toBase58(), mineBiz = coins().filter((b) => b.coin.creator === me).length, mineH = 0;
       $('#feeMeta').textContent = mineBiz + mineH ? `You created ${mineBiz + mineH} Heistpad coin${mineBiz + mineH > 1 ? 's' : ''}. Fees from all your pump.fun coins are claimed together.` : 'No coins launched from this wallet yet. Launch one and every trade pays you.';
     } catch (_) { $('#feeMeta').textContent = 'Could not read your fees right now. Try again in a moment.'; }
     syncFee();

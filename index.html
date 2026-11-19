@@ -7,7 +7,7 @@
 <meta name="description" content="GTA VI is out. Prove a heist, launch its coin. Every launch feeds the Vault, which holds tokenized $TTWO.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link href="styles.css?v=31" rel="stylesheet">
+<link href="styles.css?v=32" rel="stylesheet">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <meta name="theme-color" content="#07070b">
@@ -32,7 +32,6 @@
     <a href="#heists">Heists</a><a href="#coins">Coins</a><a href="#jobs">Businesses</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><a href="#fees">Fees</a>
   </nav>
   <div class="top-r">
-    <button type="button" class="ca-chip" data-copy="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump" aria-label="Copy Heistpad contract address" title="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump"><i>CA</i><code>CM5yQd…a2vupump</code></button>
     <button type="button" class="icon-btn snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <button type="button" class="wallet-btn" id="walletBtn"><span class="wdot"></span><span id="walletTxt">Connect wallet</span></button>
   </div>
@@ -43,12 +42,11 @@
   <div class="hero-copy">
     <a class="status-pill" href="#heists"><span class="live"></span>GTA VI is out now · Heist board is open <b>→</b></a>
     <h1>Finish the heist.<br><span class="hl">Launch the coin.</span></h1>
-    <p class="lede">Heistpad is the launchpad for GTA VI players. Prove a heist you pulled in the game and launch its coin on pump.fun, or take over one of <b id="bizCount">—</b> businesses. Every launch sends a cut to <b>the Vault</b>, which holds tokenized Take-Two <b>$TTWO</b>.</p>
+    <p class="lede">Heistpad is the launchpad for GTA VI players. Prove a heist you pulled in the game, or add a real business you found in Leonida, and launch its coin on pump.fun. <span hidden id="bizCount"></span> Every launch sends a cut to <b>the Vault</b>, which holds tokenized Take-Two <b>$TTWO</b>.</p>
     <div class="cta">
       <button type="button" class="btn primary" data-heist-submit>Submit heist proof <span>→</span></button>
-      <button type="button" class="btn ghost" data-launch>Launch a business coin</button>
+      <button type="button" class="btn ghost" data-heist-submit="business">Add a business</button>
     </div>
-    <button type="button" class="hero-ca" data-copy="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump" aria-label="Copy contract address"><i>CA</i><code>CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump</code><span class="cp-ic" aria-hidden="true">⧉</span></button>
   </div>
 
   <aside class="console" aria-label="Live Heistpad stats">
@@ -61,7 +59,7 @@
     <div class="con-grid">
       <div><small>Coins live</small><b id="stCoins">—</b></div>
       <div><small>Heists verified</small><b id="stHeists">—</b></div>
-      <div><small>Open businesses</small><b id="stOpen">—</b></div>
+      <div><small>Businesses added</small><b id="stOpen">—</b></div>
       <div><small>In the Vault</small><b id="stVault" class="gold">—</b></div>
     </div>
     <div class="con-tape">
@@ -99,17 +97,17 @@
   </div>
   <div class="cards" id="cards"></div>
   <div class="boards">
-    <div class="board"><h3>Biggest businesses</h3><ol id="bizBoard"></ol></div>
+    <div class="board"><h3>Biggest coins</h3><ol id="bizBoard"></ol></div>
     <div class="board"><h3>Most wanted crews</h3><ol id="crewBoard"></ol></div>
   </div>
 </section>
 
 <section id="jobs" class="sec dir">
   <div class="sec-head">
-    <div><p class="eyebrow">03 · Businesses</p><h2>Take over a business</h2></div>
+    <div><p class="eyebrow">03 · Businesses</p><h2>Businesses in Leonida</h2></div>
     <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="bizSearch" type="search" placeholder="Search businesses" autocomplete="off" aria-label="Search businesses"></label>
   </div>
-  <p class="sec-lede">One coin per business, ever. The first crew to launch a business's coin runs it.</p>
+  <div class="dir-bar"><p class="sec-lede">Real places from GTA VI, added by players. Found one? Add it with a screenshot. Once it's verified, you launch its coin. One coin per business.</p><button type="button" class="btn primary" data-heist-submit="business">Add a business <span>→</span></button></div>
   <div class="seg wrap" id="regionFilters"></div>
   <div class="biz-grid" id="bizGrid"></div>
 </section>
@@ -169,12 +167,12 @@
     <div><h4>Crew votes</h4><p>Vault Pass holders vote on which official locations unlock first, and whether the Vault keeps buying or starts paying out.</p></div>
     <div><h4>Proof of vault</h4><p>One public wallet. Live $TTWO balance on this page, and every buy and payout is linked.</p></div>
     <div><h4>Creator rewards</h4><p>Your coin lives on pump.fun, so you earn pump.fun's creator fee on its trades and can claim it right here.</p></div>
-    <div><h4>Own the spot</h4><p>One coin per business and one per heist, ever. Launch first and it's yours for good.</p></div>
+    <div><h4>Own the spot</h4><p>One coin per real business and one per heist. Find it, prove it, launch it, and it's yours for good.</p></div>
   </div>
   <ol class="road">
-    <li class="done"><span>Live</span><h4>Businesses open</h4><p>One coin each. Fees stack in the Vault.</p></li>
+    <li class="done"><span>Live</span><h4>Launchpad open</h4><p>Fees stack in the Vault from day one.</p></li>
     <li class="done"><span>Nov 19</span><h4>GTA VI is out</h4><p>The heist board opens. Players prove heists and launch them.</p></li>
-    <li class="now"><span>Now</span><h4>Mapping the game</h4><p>Crews log official locations and heists as players find them.</p></li>
+    <li class="now"><span>Now</span><h4>Mapping Leonida</h4><p>Players add real businesses and heists as they find them.</p></li>
     <li><span>Next</span><h4>Update Drop</h4><p>Snapshot, holders pick locations, airdrop lands. Weekly payouts start.</p></li>
   </ol>
 </section>
@@ -253,15 +251,17 @@
 <div class="modal" id="heistModal" hidden>
   <form class="sheet" id="heistForm" novalidate>
     <button type="button" class="x" data-close-h aria-label="Close">×</button>
-    <p class="eyebrow">Heist complete?</p>
-    <h3>Submit proof</h3>
-    <label>Heist name <i class="opt">as it shows in the game</i><input id="hfHeist" maxlength="40" placeholder="e.g. The Jewelry Store Job" autocomplete="off"></label>
+    <p class="eyebrow">From the game</p>
+    <h3 id="hfTitle">Submit proof</h3>
+    <div class="seg kind" id="hfKind"><button type="button" data-kind="heist" class="on">Heist I finished</button><button type="button" data-kind="business">Business I found</button></div>
+    <label id="hfNameL">Heist name <i class="opt">as it shows in the game</i><input id="hfHeist" maxlength="40" placeholder="e.g. The Jewelry Store Job" autocomplete="off"></label>
     <div class="tick-pick" id="hfTickWrap" hidden>
       <span class="tp-l">Pick your ticker</span>
       <div class="tp-opts" id="hfTickOpts"></div>
       <label class="tp-own">Or type your own abbreviation<input id="hfTickOwn" maxlength="10" placeholder="e.g. JSJ" autocomplete="off" autocapitalize="characters"></label>
       <div class="hf-tick">Your coin's ticker: <b id="hfTick">$—</b></div>
     </div>
+    <label id="hfRegL" hidden>Region in Leonida<select id="hfReg"></select></label>
     <label>Platform<select id="hfPlat"></select></label>
     <label><span id="hfIdLbl">PSN Online ID</span><input id="hfId" maxlength="64" placeholder="Your PSN Online ID" autocomplete="off" spellcheck="false"></label>
     <label>Rockstar Games ID <i class="opt">optional, helps us match you</i><input id="hfRid" maxlength="16" placeholder="Social Club name" autocomplete="off" spellcheck="false"></label>
@@ -269,7 +269,7 @@
     <label>Clip link <i class="opt">optional</i><input id="hfClip" type="url" placeholder="https:// YouTube, X, Twitch, PS or Xbox share link" autocomplete="off"></label>
     <label>Anything else? <i class="opt">optional</i><textarea id="hfNote" maxlength="300" rows="2" placeholder="When you finished it, crew members, etc."></textarea></label>
     <p class="lf-err" id="hfErr" role="alert" hidden></p>
-    <p class="fine">Your screenshot, heist and gamertag are shown publicly on the Heist Board once verified. Fake or edited proof gets rejected. Submitting is free.</p>
+    <p class="fine" id="hfFine">Your screenshot, heist and gamertag are shown publicly on the Heist Board once verified. Fake or edited proof gets rejected. Submitting is free.</p>
     <button class="btn primary wide" type="submit" id="hfGo">Connect wallet to submit <span>→</span></button>
   </form>
 </div>
@@ -316,6 +316,6 @@
   // Where the Heistpad API lives. Local dev talks to wrangler on :8787.
   window.HEIST_API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://heistpad-api.heistpad-api.workers.dev';
 </script>
-<script src="app.js?v=31"></script>
+<script src="app.js?v=32"></script>
 </body>
 </html>

@@ -413,3 +413,9 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 .hero>*,.fee-card>*,.vault-sec>*,.drop-grid>*,.boards>*{min-width:0}
 @media (max-width:1080px){.hero{grid-template-columns:minmax(0,1fr)}}
 .con-head code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:12px}
+
+/* v32: player-added businesses */
+.dir-bar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.dir-bar .sec-lede{flex:1;min-width:260px}
+.seg.kind{display:flex;width:100%}
+.seg.kind button{flex:1;padding:9px 10px}
