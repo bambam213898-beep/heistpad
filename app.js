@@ -1,7 +1,6 @@
-/* Heistpad — concept launchpad. Demo coin data, live tokenized $TTWO price. */
+/* Heistpad — GTA VI launchpad: heist coins, business coins, live tokenized $TTWO Vault. */
 (() => {
   const TTWO_MINT = 'TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo';
-  const VI_DATE = Date.parse('2026-11-19T00:00:00-05:00');
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -56,127 +55,58 @@
     navigator.clipboard?.writeText(v).then(() => toast('CA copied'), () => toast(v));
   });
 
-  /* ---------- countdown ---------- */
-  function tick() {
-    let s = Math.max(0, Math.floor((VI_DATE - Date.now()) / 1000));
-    const d = Math.floor(s / 86400); s %= 86400; const h = Math.floor(s / 3600); s %= 3600; const m = Math.floor(s / 60); s %= 60;
-    const set = (u, v) => { $(`[data-u="${u}"]`).textContent = v; };
-    set('d', d); set('h', String(h).padStart(2, '0')); set('m', String(m).padStart(2, '0')); set('s', String(s).padStart(2, '0'));
-  }
-  tick(); setInterval(tick, 1000);
-
   /* ---------- stats / lists ---------- */
   let sortBy = 'new';
   function renderAll() {
     const cs = coins();
     const total = cs.reduce((a, b) => a + b.coin.cap, 0);
     $('#bizCount').textContent = BIZ.length;
-    $('#stCoins').textContent = cs.length;
-    $('#stCap').textContent = fmt$(total);
+    $('#stCoins').textContent = cs.length + (window.hpHeistCoins || 0);
+    $('#stCap').textContent = `${fmt$(total)} mcap`;
     $('#stOpen').textContent = BIZ.length - cs.length;
 
     const sorted = [...cs].sort((a, b) => sortBy === 'new' ? b.coin.born - a.coin.born : sortBy === 'heat' ? b.coin.vol - a.coin.vol : b.coin.cap - a.coin.cap);
-    const max = Math.max(1, ...cs.map((b) => b.coin.cap));
-    $('#cards').innerHTML = !cs.length ? `<div class="empty"><b>No coins yet.</b><span>All ${BIZ.length} businesses on the map are open. The first crew to launch a coin runs the business.</span><button type="button" class="btn pink" data-launch>Be the first crew →</button></div>` : sorted.slice(0, 12).map((b) => `
+    $('#cards').innerHTML = !cs.length ? `<div class="empty"><b>No business coins yet.</b><span>All ${BIZ.length} businesses are open. The first crew to launch a coin runs the business.</span><button type="button" class="btn primary" data-launch>Be the first crew →</button></div>` : sorted.slice(0, 12).map((b) => `
       <article class="card" data-biz="${b.id}">
         <div class="c-top">${avatar(b.coin)}<div><h4>${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</h4><small>$${esc(b.coin.tick)}</small></div><span class="c-age">${ago(b.coin.born)}</span></div>
         <div class="c-biz"><b>${esc(b.name)}</b> · ${regionName(b.rid)}</div>
         <div class="c-mid"><span class="c-cap">${fmt$(b.coin.cap)}</span>${stars(b.coin.vol)}</div>
         <div class="bar" title="Bonding curve progress"><i style="width:${Math.max(3, (b.coin.progress || 0) * 100)}%"></i></div>
         <div class="prog">${b.coin.complete ? 'Graduated <span class="grad">LIVE ON DEX</span>' : `${((b.coin.progress || 0) * 100).toFixed(1)}% to graduation`}</div>
-        <div class="c-bot"><a class="btn pink" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy on pump.fun</a><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>
+        <div class="c-bot"><a class="btn primary" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy on pump.fun</a><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>
       </article>`).join('');
 
     const emptyLi = '<li class="empty-li"><span>Nobody yet. Could be you.<small>Launch a coin to take the top spot</small></span><b>—</b></li>';
     $('#bizBoard').innerHTML = !cs.length ? emptyLi : [...cs].sort((a, b) => b.coin.cap - a.coin.cap).slice(0, 6).map((b) => `<li><span>${esc(b.name)}<small>${esc(b.type)} · ${regionName(b.rid)}</small></span><b>${fmt$(b.coin.cap)}</b></li>`).join('');
     $('#crewBoard').innerHTML = !cs.length ? emptyLi : [...cs].sort((a, b) => b.coin.vol - a.coin.vol).slice(0, 6).map((b) => `<li><span>$${esc(b.coin.tick)}<small>${stars(b.coin.vol)}</small></span><b>${fmt$(b.coin.vol * 310)} vol</b></li>`).join('');
-
-    $('#regGrid').innerHTML = REGIONS.map((r) => {
-      const rc = cs.filter((b) => b.rid === r.id);
-      return `<div class="reg" data-region="${r.id}"><h4>${r.name}</h4><p>${r.blurb}</p><div class="meta"><span>${rc.length} coins · ${BIZ.filter((b) => b.rid === r.id).length} spots</span><span>${fmt$(rc.reduce((a, b) => a + b.coin.cap, 0))}</span></div></div>`;
-    }).join('');
-    if (map && !mkEls.size) renderMarkers(); else sizeMarkers();
+    renderDir();
   }
   $('#sortTabs').addEventListener('click', (e) => {
     const b = e.target.closest('[data-sort]'); if (!b) return;
     sortBy = b.dataset.sort; $$('#sortTabs button').forEach((x) => x.classList.toggle('on', x === b)); renderAll();
   });
-  document.addEventListener('click', (e) => {
-    const reg = e.target.closest('[data-region]');
-    if (reg) { $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); flyRegion(reg.dataset.region); return; }
-    const card = e.target.closest('.card[data-biz]');
-    if (card && !e.target.closest('button,a')) { $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); focusBiz(card.dataset.biz); }
-  });
 
-  /* ---------- map ---------- */
-  let map = null; const markers = [];
-  const NARROW = () => document.getElementById("mapEl").clientWidth < 600;
-  const flBounds = () => NARROW() ? [[-83.0, 24.45], [-79.95, 30.7]] : [[-87.7, 24.45], [-79.9, 31.05]];
-  const FL_PAD = { top: 70, bottom: NARROW() ? 70 : 30, left: 20, right: 20 };
-  try {
-    map = new maplibregl.Map({
-      container: 'mapEl', style: 'https://tiles.openfreemap.org/styles/dark', bounds: flBounds(), fitBoundsOptions: { padding: FL_PAD },
-      attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, cooperativeGestures: matchMedia('(pointer: coarse)').matches,
-    });
-    if (!NARROW()) map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
-    map.on('load', () => {
-      // warm neon tint on the dark basemap
-      for (const l of map.getStyle().layers) {
-        if (l.type === 'background') map.setPaintProperty(l.id, 'background-color', '#120d1c');
-        if (l.id.includes('water') && l.type === 'fill') map.setPaintProperty(l.id, 'fill-color', '#0a1a2a');
-        if (l.id.includes('road') && l.type === 'line') { try { map.setPaintProperty(l.id, 'line-color', '#3a2a4f'); } catch (_) {} }
-      }
-    });
-  } catch (err) { $('#mapEl').innerHTML = '<p style="padding:20px;color:#a89bbd">Map failed to load.</p>'; }
-
-  const VAULT_SPOT = { lng: -80.1903, lat: 25.7700 };
-  function renderMarkers() {
-    if (!map) return;
-    markers.forEach((m) => m.remove()); markers.length = 0;
-    const v = document.createElement('div'); v.className = 'mk vault'; v.title = 'The Vault';
-    v.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#120d1c" stroke-width="2.6"/><circle cx="12" cy="12" r="2.4" fill="#120d1c"/></svg><span class="tk">THE VAULT</span>';
-    v.onclick = () => { $('#vault').scrollIntoView({ behavior: 'smooth' }); };
-    markers.push(new maplibregl.Marker({ element: v }).setLngLat([VAULT_SPOT.lng, VAULT_SPOT.lat]).addTo(map));
-    for (const b of BIZ) {
-      const el = document.createElement('div');
-      el.title = b.name;
-      el.addEventListener('click', (e) => { e.stopPropagation(); showCard(b); });
-      mkEls.set(b.id, el);
-      markers.push(new maplibregl.Marker({ element: el }).setLngLat([b.lng, b.lat]).addTo(map));
-    }
-    sizeMarkers();
+  /* ---------- business directory (replaces the old map) ---------- */
+  let dirRegion = 'all', dirQuery = '';
+  function renderFilters() {
+    const n = (rid) => BIZ.filter((b) => rid === 'all' || b.rid === rid).length;
+    $('#regionFilters').innerHTML = [{ id: 'all', name: 'All' }, ...REGIONS].map((r) => `<button type="button" data-r="${r.id}" class="${r.id === dirRegion ? 'on' : ''}">${r.name}<small>${n(r.id)}</small></button>`).join('');
   }
-  // update marker look in place (no re-creation, so the map stays smooth while trades tick)
-  const mkEls = new Map();
-  function sizeMarkers() {
-    const max = Math.max(1, ...coins().map((b) => b.coin.cap));
-    for (const b of BIZ) {
-      const el = mkEls.get(b.id); if (!el) continue;
-      if (b.coin) {
-        if (!el.classList.contains('own')) { el.className = 'mk own'; el.innerHTML = `<span class="tk">$${esc(b.coin.tick)}</span>`; }
-        el.style.width = el.style.height = (14 + Math.round((b.coin.cap / max) * 22)) + 'px';
-      } else if (el.className !== 'mk open') { el.className = 'mk open'; el.innerHTML = ''; }
-    }
+  function renderDir() {
+    const q = dirQuery.trim().toLowerCase();
+    const list = BIZ.filter((b) => (dirRegion === 'all' || b.rid === dirRegion) && (!q || `${b.name} ${b.type} ${regionName(b.rid)} ${b.coin ? b.coin.tick : ''}`.toLowerCase().includes(q)))
+      .sort((a, b) => (!!a.coin - !!b.coin) || a.name.localeCompare(b.name));
+    $('#bizGrid').innerHTML = !list.length ? '<p class="bz-none">No businesses match that search.</p>' : list.map((b) => `
+      <div class="bz" id="${b.id}">
+        <div class="bz-top"><div><h4>${esc(b.name)}</h4><small>${esc(b.type)} · ${regionName(b.rid)}</small></div>${b.coin ? '<span class="st-taken">TAKEN</span>' : '<span class="st-open">OPEN</span>'}</div>
+        ${b.coin
+          ? `<div class="bz-coin">${avatar(b.coin)}<b>$${esc(b.coin.tick)}</b><span style="color:var(--mut)">${fmt$(b.coin.cap)}</span>${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</div><div class="bz-bot"><a class="btn ghost" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy $${esc(b.coin.tick)}</a></div>`
+          : `<div class="bz-bot"><button type="button" class="btn ghost" data-launch="${b.id}">Launch this coin →</button></div>`}
+      </div>`).join('');
   }
-  function showCard(b) {
-    const card = $('#mapCard'); card.hidden = false;
-    card.innerHTML = `<button class="x" aria-label="Close">×</button><div class="mc-type">${esc(b.type)}</div><h4>${esc(b.name)}</h4><div class="mc-reg">${regionName(b.rid)}</div>` + (b.coin
-      ? `<div class="mc-row">${avatar(b.coin)}<div style="flex:1"><div style="font-weight:800">${esc(b.coin.name)}${b.coin.mine ? ' <span class="yours">YOURS</span>' : ''}</div><small style="color:var(--mut);font-family:JetBrains Mono">$${esc(b.coin.tick)}</small></div>${stars(b.coin.vol)}</div>
-         <div class="mc-row"><span style="color:var(--mut)">Market cap</span><b>${fmt$(b.coin.cap)}</b></div>
-         <div class="c-bot"><a class="btn pink" href="${pumpUrl(b.coin.ca)}" target="_blank" rel="noopener">Buy $${esc(b.coin.tick)}</a><button class="cp" data-copy="${b.coin.ca}">${shortCa(b.coin.ca)}</button></div>`
-      : `<p style="color:var(--mut);margin:6px 0 12px;font-size:14px">This job is still open. First crew to launch its coin runs it.</p><button class="btn pink wide" data-launch="${b.id}">Pull this job →</button>`);
-    card.querySelector('.x').onclick = () => { card.hidden = true; };
-  }
-  function focusBiz(id) { const b = BIZ.find((x) => x.id === id); if (!b) return; map?.flyTo({ center: [b.lng, b.lat], zoom: 12.5, speed: 1.4 }); showCard(b); }
-  function flyRegion(rid) {
-    $$('#regionFilters button').forEach((x) => x.classList.toggle('on', x.dataset.r === rid));
-    $('#mapCard').hidden = true;
-    if (rid === 'all') { showArea('Florida', `${BIZ.length} businesses · 6 regions`); return map?.fitBounds(flBounds(), { padding: FL_PAD, speed: 1.2 }); }
-    const r = REGIONS.find((x) => x.id === rid); map?.flyTo({ center: r.c, zoom: r.z, speed: 1.2 });
-    showArea(r.name, `${coins().filter((b) => b.rid === rid).length} coins · ${BIZ.filter((b) => b.rid === rid && !b.coin).length} open jobs`);
-  }
-  $('#regionFilters').innerHTML = `<button class="on" data-r="all">All Florida</button>` + REGIONS.map((r) => `<button data-r="${r.id}">${r.name}</button>`).join('');
-  $('#regionFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (b) flyRegion(b.dataset.r); });
+  $('#regionFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; dirRegion = b.dataset.r; renderFilters(); renderDir(); });
+  $('#bizSearch').addEventListener('input', (e) => { dirQuery = e.target.value; renderDir(); });
+  renderFilters();
 
   /* ---------- wallet ---------- */
   let wallet = null, provider = null, busy = false;
@@ -333,14 +263,13 @@
   function openLaunch(bizId) {
     const open = BIZ.filter((b) => !b.coin);
     $('#launchForm').reset(); setMode(null); imgData = null; imgFile = null; $('#lfImgTxt').textContent = "Pick your coin's image (required)"; setErr(''); setSteps(null); syncGo();
-    if (!open.length) { toast('Every business on the map is taken'); return; }
+    if (!open.length) { toast('Every business is taken'); return; }
     $('#lfBiz').innerHTML = REGIONS.map((r) => {
       const list = open.filter((b) => b.rid === r.id);
       return list.length ? `<optgroup label="${r.name}">${list.map((b) => `<option value="${b.id}">${esc(b.name)} — ${esc(b.type)}</option>`).join('')}</optgroup>` : '';
     }).join('');
     if (bizId && open.some((b) => b.id === bizId)) $('#lfBiz').value = bizId;
     else if (bizId) toast('That business was already taken — pick another');
-    $('#mapCard').hidden = true;
     modal.hidden = false; setTimeout(() => $('#lfName').focus(), 50);
   }
   /* launches you make are saved in this browser so they survive a refresh */
@@ -394,7 +323,7 @@
     if (b.coin) return setErr(`${b.name} already has a coin ($${b.coin.tick}). Pick another business.`);
     if (name.length < 2) return setErr('Coin name needs at least 2 characters.');
     if (tick.length < 2) return setErr('Ticker needs 2–10 letters or numbers.');
-    if (coins().some((x) => x.coin.tick.toUpperCase() === tick)) return setErr(`$${tick} is already on the map. Try another ticker.`);
+    if (coins().some((x) => x.coin.tick.toUpperCase() === tick)) return setErr(`$${tick} is already taken. Try another ticker.`);
     if (!imgFile && !H) return setErr('Add an image for your coin.');
     const links = [$('#lfX').value.trim(), $('#lfTg').value.trim()];
     if (links.some((u) => u && !/^https:\/\//.test(u))) return setErr('Links must start with https://');
@@ -457,7 +386,7 @@
     $('#psTxt').textContent = p.heist ? `${p.name || 'Your heist'} · $${p.symbol} is live on pump.fun · creator fees are yours` : `${b ? b.name : 'Your business'} is yours · $${p.symbol} is live on pump.fun · + RESPECT`;
     $('#passed').hidden = false; sfx.passed(); flashStars(); hud();
     window.dispatchEvent(new Event('hp:launched'));
-    if (b) map?.flyTo({ center: [b.lng, b.lat], zoom: 12.5 });
+    setTimeout(() => document.getElementById(p.heist ? 'heists' : 'coins')?.scrollIntoView({ behavior: 'smooth' }), 400);
   }
 
   // back from the Phantom app: finish connecting, or finish the launch it just signed
@@ -484,7 +413,7 @@
   // a Phantom-app session from an earlier visit counts as connected
   if (dlSession && !wallet) { try { wallet = new W3.PublicKey(dlSession.wallet); setTimeout(syncWallet, 0); } catch (_) {} }
 
-  $('[data-close-passed]').onclick = () => { $('#passed').hidden = true; $('#map').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  $('[data-close-passed]').onclick = () => { $('#passed').hidden = true; };
 
   /* ---------- live tokenized $TTWO ---------- */
   async function loadTTWO() {
@@ -514,7 +443,7 @@
   /* nav highlight */
   const navLinks = $$('.links a');
   const io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) navLinks.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-45% 0px -50% 0px' });
-  ['home', 'vault', 'drop', 'jobs'].forEach((id) => io.observe(document.getElementById(id)));
+  ['heists', 'coins', 'jobs', 'fees', 'vault', 'drop'].forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el); });
 
   /* ---------- Update Drop: eligibility checker + location picker ---------- */
   const DROP_MIN = 1, DROP_CAP = 10, MAX_PICKS = 10;
@@ -568,7 +497,7 @@
   let lastStars = 0;
   const heat = () => { const cs = coins().length; if (!cs) return 0; const recent = events.filter((t) => Date.now() - t < 10 * 60 * 1000).length; return Math.min(6, 1 + Math.floor(recent / 4) + (cs >= 10 ? 1 : 0)); };
   function hud(bump) {
-    const total = coins().reduce((a, b) => a + b.coin.cap, 0);
+    const total = coins().reduce((a, b) => a + b.coin.cap, 0) + (window.hpHeistCap || 0);
     const cash = $('#hudCash'); cash.textContent = '$' + Math.round(total).toLocaleString('en-US');
     if (bump) { cash.classList.add('bump'); setTimeout(() => cash.classList.remove('bump'), 200); }
     const n = heat(); $('#hudStars').innerHTML = [1, 2, 3, 4, 5, 6].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('');
@@ -578,22 +507,14 @@
   }
   function flashStars() { const s = $('#hudStars'); s.classList.remove('flash'); void s.offsetWidth; s.classList.add('flash'); }
 
-  let areaT;
-  function showArea(name, sub) {
-    const a = $('#area'); a.innerHTML = `<b>${esc(name)}</b><small>${esc(sub)}</small>`; a.classList.add('show');
-    clearTimeout(areaT); areaT = setTimeout(() => a.classList.remove('show'), 3200);
-  }
-
   // live activity: each poll compares a coin's SOL in its bonding curve with the last poll
   const events = [];
   function pushEvent(b, buy, sol) {
     events.push(Date.now());
     const ev = document.createElement('div'); ev.className = 'ev';
     ev.innerHTML = `${avatar(b.coin)}<div><span>someone</span> <b class="${buy ? 'buy' : 'sell'}">${buy ? 'bought' : 'sold'} ${sol.toFixed(sol < 1 ? 3 : 2)} SOL</b><br><b>$${esc(b.coin.tick)}</b> <span>· ${esc(b.name)}</span></div>`;
-    const f = $('#feed'); f.prepend(ev);
-    while (f.children.length > 3) f.removeChild(f.lastElementChild);
-    setTimeout(() => ev.isConnected && f.removeChild(ev), 6000);
-    const el = mkEls.get(b.id); if (el) { el.classList.remove('ping'); void el.offsetWidth; el.classList.add('ping'); }
+    const f = $('#feed'); f.querySelector('.feed-empty')?.remove(); f.prepend(ev);
+    while (f.children.length > 5) f.removeChild(f.lastElementChild);
     const card = document.querySelector(`.card[data-biz="${b.id}"]`);
     if (card) { card.classList.remove('hit'); void card.offsetWidth; card.classList.add('hit'); }
     (buy ? sfx.buy : sfx.sell)();
@@ -615,39 +536,6 @@
       firstLoad = false; renderAll(); hud(true);
     } catch (_) { /* API unreachable: keep what we have */ }
   }
-  // traffic: cars on the causeways + Overseas Hwy, boats in the bays, a news chopper over downtown
-  const ROUTES = [
-    ['car', 9, [[-80.205, 25.745], [-80.206, 25.80], [-80.201, 25.87], [-80.186, 25.95]]],
-    ['car', 7, [[-80.19, 25.786], [-80.165, 25.781], [-80.14, 25.776]]],
-    ['car', 8, [[-80.214, 25.766], [-80.19, 25.766], [-80.162, 25.745], [-80.158, 25.72]]],
-    ['car', 60, [[-80.44, 25.09], [-80.62, 24.92], [-80.9, 24.78], [-81.08, 24.72], [-81.25, 24.70], [-81.55, 24.66], [-81.78, 24.56]]],
-    ['car', 22, [[-82.62, 27.89], [-82.53, 27.93], [-82.46, 27.95]]],
-    ['car', 30, [[-80.61, 28.10], [-80.6, 28.32], [-80.61, 28.55]]],
-    ['boat', 26, [[-80.17, 25.70], [-80.145, 25.76], [-80.165, 25.83], [-80.18, 25.77], [-80.17, 25.70]]],
-    ['boat', 34, [[-80.12, 25.76], [-80.08, 25.79], [-80.05, 25.86], [-80.09, 25.80], [-80.12, 25.76]]],
-    ['boat', 40, [[-82.6, 27.7], [-82.55, 27.82], [-82.48, 27.88], [-82.58, 27.76], [-82.6, 27.7]]],
-    ['heli', 20, [[-80.19, 25.765], [-80.135, 25.79], [-80.19, 25.83], [-80.23, 25.79], [-80.19, 25.765]]],
-  ];
-  if (map && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const vehicles = ROUTES.map(([kind, secs, pts]) => {
-      const el = document.createElement('div'); el.className = `veh ${kind}`;
-      const m = new maplibregl.Marker({ element: el }).setLngLat(pts[0]).addTo(map);
-      const segs = []; let L = 0;
-      for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(d); L += d; }
-      return { m, pts, segs, L, secs, off: Math.random() * 2, pingpong: kind === 'car' };
-    });
-    const t0 = performance.now();
-    (function anim(now) {
-      for (const v of vehicles) {
-        let u = ((now - t0) / 1000 / v.secs + v.off) % (v.pingpong ? 2 : 1); if (u > 1) u = 2 - u;
-        let d = u * v.L, i = 0; while (i < v.segs.length - 1 && d > v.segs[i]) { d -= v.segs[i]; i++; }
-        const k = v.segs[i] ? Math.min(1, d / v.segs[i]) : 0, a = v.pts[i], b = v.pts[i + 1];
-        v.m.setLngLat([a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k]);
-      }
-      requestAnimationFrame(anim);
-    })(t0);
-  }
-
   /* ---------- heist proofs: finish a heist in GTA VI, prove it, launch $HEISTNAME ---------- */
   // Matches the API: GTA VI launched Nov 19 2026 on PS5 and Xbox Series X|S; no PC version announced yet.
   let PLATS = [
@@ -659,7 +547,34 @@
     { id: 'epic', label: 'PC · Epic Games Store', net: 'epic', idName: 'Epic display name', soon: true },
   ];
   const ID_PH = { psn: 'Your PSN Online ID', xbox: 'Your Xbox gamertag (e.g. MurdaMan#1234)', steam: 'steamcommunity.com link, SteamID64 or name', rockstar: 'Your Rockstar Games ID', epic: 'Your Epic display name' };
-  const tickerOf = (n) => { let t = String(n).toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim(); if (t.replace(/ /g, '').length > 10) t = t.replace(/^THE\s+/, ''); return t.replace(/ /g, '').slice(0, 10); };
+  // Ticker choices, same rules as the API: the name, its key word, or an abbreviation (letters in order from the name)
+  const STOPW = new Set(['THE', 'A', 'AN', 'OF', 'AND']);
+  const words = (n) => String(n).toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+  const tickerOptions = (n) => {
+    const w = words(n), sig = w.filter((x) => !STOPW.has(x)), out = [];
+    const add = (t, why) => { if (t && t.length >= 2 && t.length <= 10 && !out.some((o) => o.t === t)) out.push({ t, why }); };
+    add(sig.join(''), 'Full name'); add(w.join(''), 'Full name'); add(sig[0], 'Key word');
+    if (sig.length > 1) add(sig[0] + sig.slice(1).map((x) => x[0]).join(''), 'Word + initials');
+    add(sig.map((x) => x[0]).join(''), 'Initials'); add(w.map((x) => x[0]).join(''), 'Initials'); add(sig[sig.length - 1], 'Last word');
+    if (!out.length && sig[0]) out.push({ t: sig[0].slice(0, 10), why: 'Short' });
+    return out;
+  };
+  const fitsName = (t, n) => { const src = words(n).join(''); let i = 0; for (const ch of t) { i = src.indexOf(ch, i); if (i < 0) return false; i++; } return true; };
+  let pickedTick = '';
+  const tickerOf = () => pickedTick;
+  function renderTickPick() {
+    const name = $('#hfHeist').value, opts = tickerOptions(name), own = $('#hfTickOwn').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    $('#hfTickWrap').hidden = !opts.length;
+    if (!own && !opts.some((o) => o.t === pickedTick)) pickedTick = opts[0]?.t || '';
+    $('#hfTickOpts').innerHTML = opts.map((o) => `<button type="button" data-tick="${o.t}" class="${o.t === pickedTick ? 'on' : ''}">$${o.t}<small>${o.why}</small></button>`).join('');
+    $('#hfTick').textContent = pickedTick ? `$${pickedTick}` : '$—';
+  }
+  $('#hfTickOpts').addEventListener('click', (e) => { const b = e.target.closest('[data-tick]'); if (!b) return; pickedTick = b.dataset.tick; $('#hfTickOwn').value = ''; renderTickPick(); });
+  $('#hfTickOwn').addEventListener('input', (e) => {
+    const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10); e.target.value = v;
+    if (v.length >= 2 && fitsName(v, $('#hfHeist').value)) { pickedTick = v; hErr(''); } else if (v) { pickedTick = ''; }
+    renderTickPick(); if (v.length >= 2 && !pickedTick) $('#hfTick').textContent = 'use letters from the heist name, in order';
+  });
   const gw = ipfsImg;
   const STATUS = { pending: 'IN REVIEW', approved: 'VERIFIED', rejected: 'REJECTED', launched: 'COIN LIVE' };
   let HEISTS = { board: [], mine: [] };
@@ -674,9 +589,13 @@
   }
   function syncIdField() { const p = PLATS.find((x) => x.id === $('#hfPlat').value) || PLATS[0]; $('#hfIdLbl').textContent = p.idName; $('#hfId').placeholder = ID_PH[p.net] || ''; }
   $('#hfPlat').addEventListener('change', syncIdField);
-  $('#hfHeist').addEventListener('input', (e) => { const t = tickerOf(e.target.value); $('#hfTick').textContent = t.length >= 2 ? `$${t}` : '$—'; });
+  $('#hfHeist').addEventListener('input', () => { $('#hfTickOwn').value = ''; renderTickPick(); });
   function renderHeists() {
     const { board, mine } = HEISTS;
+    window.hpHeistCoins = board.filter((h) => h.status === 'launched').length;
+    window.hpHeistCap = board.reduce((a, h) => a + (h.mcapUsd || 0), 0); hud();
+    $('#stHeists').textContent = board.length;
+    $('#stCoins').textContent = coins().length + window.hpHeistCoins;
     const box = $('#hsMine'); box.hidden = !wallet || !mine.length;
     if (!box.hidden) box.innerHTML = `<h3>Your heists</h3>` + mine.map((h) => `<div class="hm-row"><img src="${esc(gw(h.image || h.proof))}" alt="" loading="lazy"><div class="hm-t"><b>${esc(h.heist)} <span class="tk" style="color:var(--gold);font-family:JetBrains Mono">$${esc(h.ticker)}</span></b><small>${esc(h.gamertag)} · ${esc(h.platformLabel)}</small></div><span class="chip ${h.status}">${STATUS[h.status] || h.status}</span>${
       h.status === 'approved' && h.taken ? `<span class="hm-why" style="width:auto;color:var(--mut)">Another crew launched $${esc(h.ticker)} first</span>` :
@@ -701,7 +620,7 @@
   const hErr = (m) => { const e = $('#hfErr'); e.textContent = m || ''; e.hidden = !m; };
   let proofFile = null;
   const syncHGo = (busyH) => { $('#hfGo').disabled = !!busyH; $('#hfGo').innerHTML = busyH ? 'Uploading proof… <span>⏳</span>' : wallet ? 'Submit for review <span>→</span>' : 'Connect wallet to submit <span>→</span>'; };
-  function openHeist() { $('#heistForm').reset(); proofFile = null; $('#hfProofTxt').textContent = 'Completion screen or trophy/achievement unlock (required)'; $('#hfTick').textContent = '$—'; hErr(''); renderPlats(); syncHGo(); hModal.hidden = false; setTimeout(() => $('#hfHeist').focus(), 50); }
+  function openHeist() { $('#heistForm').reset(); proofFile = null; $('#hfProofTxt').textContent = 'Completion screen or trophy/achievement unlock (required)'; pickedTick = ''; renderTickPick(); hErr(''); renderPlats(); syncHGo(); hModal.hidden = false; setTimeout(() => $('#hfHeist').focus(), 50); }
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-heist-submit]')) { e.preventDefault(); openHeist(); return; }
     const l = e.target.closest('[data-heist-launch]');
@@ -721,13 +640,13 @@
     const heist = $('#hfHeist').value.trim().replace(/\s+/g, ' '), plat = $('#hfPlat').value, gt = $('#hfId').value.trim(), clip = $('#hfClip').value.trim();
     const p = PLATS.find((x) => x.id === plat);
     if (heist.length < 3) return hErr('Type the heist name exactly as it shows in the game.');
-    if (tickerOf(heist).length < 2) return hErr('The heist name needs at least 2 letters or numbers.');
+    if (!pickedTick) return hErr($('#hfTickOwn').value ? 'Your ticker has to use letters from the heist name, in order (e.g. JSJ for The Jewelry Store Job).' : 'The heist name needs at least 2 letters or numbers.');
     if (!p || p.soon) return hErr('Pick the platform you played on.');
     if (!gt) return hErr(`Add your ${p.idName}.`);
     if (!proofFile) return hErr('Add a screenshot of the heist completion screen or the trophy/achievement.');
     if (clip && !/^https:\/\//.test(clip)) return hErr('Clip links must start with https://');
     const fd = new FormData();
-    Object.entries({ wallet: wallet.toBase58(), heist, platform: plat, gamertag: gt, rockstarId: $('#hfRid').value.trim(), clip, note: $('#hfNote').value.trim() }).forEach(([k, v]) => fd.append(k, v));
+    Object.entries({ wallet: wallet.toBase58(), heist, ticker: pickedTick, platform: plat, gamertag: gt, rockstarId: $('#hfRid').value.trim(), clip, note: $('#hfNote').value.trim() }).forEach(([k, v]) => fd.append(k, v));
     fd.append('proof', proofFile, proofFile.name);
     syncHGo(true); hErr('');
     try {

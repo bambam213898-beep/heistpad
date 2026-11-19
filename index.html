@@ -4,108 +4,145 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Heistpad — every launch is a heist</title>
-<meta name="description" content="Launch a coin out of any business in Florida. Every launch feeds the Vault, which holds tokenized $TTWO.">
+<meta name="description" content="GTA VI is out. Prove a heist, launch its coin. Every launch feeds the Vault, which holds tokenized $TTWO.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="styles.css?v=21" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="styles.css?v=31" rel="stylesheet">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
-<meta name="theme-color" content="#0c0913">
+<meta name="theme-color" content="#07070b">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://heistpad.live/">
 <meta property="og:title" content="Heistpad — every launch is a heist">
-<meta property="og:description" content="Launch a coin out of any business in Florida. Every launch feeds the Vault, which holds tokenized $TTWO.">
+<meta property="og:description" content="GTA VI is out. Prove a heist, launch its coin. Every launch feeds the Vault, which holds tokenized $TTWO.">
 <meta property="og:image" content="https://heistpad.live/assets/brand/heistpad-og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://heistpad.live/assets/brand/heistpad-og.png">
 </head>
 <body>
+<div class="bg-grid" aria-hidden="true"></div>
 
 <header class="top">
   <a class="brand" href="#home" aria-label="Heistpad home">
-    <img class="mark" src="assets/brand/mark-96.png" width="34" height="34" alt="">
-    <b>HEIST</b><span>PAD</span>
+    <img class="mark" src="assets/brand/mark-96.png" width="30" height="30" alt="">
+    <span>Heist<b>pad</b></span>
   </a>
   <nav class="links">
-    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#heists">Heists</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><a href="#kit">Kit</a><button type="button" data-launch>Launch</button>
+    <a href="#heists">Heists</a><a href="#coins">Coins</a><a href="#jobs">Businesses</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><a href="#fees">Fees</a>
   </nav>
-  <button type="button" class="ca-chip" data-copy="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump" aria-label="Copy Heistpad contract address" title="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump"><i>CA</i><code>CM5yQd…a2vupump</code></button>
-  <button type="button" class="snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-  <button type="button" class="wallet-btn" id="walletBtn"><span class="wdot"></span><span id="walletTxt">Connect wallet</span></button>
-  <button type="button" class="btn pink sm" data-launch>Pull a job</button>
+  <div class="top-r">
+    <button type="button" class="ca-chip" data-copy="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump" aria-label="Copy Heistpad contract address" title="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump"><i>CA</i><code>CM5yQd…a2vupump</code></button>
+    <button type="button" class="icon-btn snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <button type="button" class="wallet-btn" id="walletBtn"><span class="wdot"></span><span id="walletTxt">Connect wallet</span></button>
+  </div>
 </header>
 
 <main>
 <section id="home" class="hero">
-  <svg class="skyline" viewBox="0 0 1440 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-    <defs><linearGradient id="sun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#ff3d8b"/></linearGradient>
-    <mask id="sunCut"><rect width="1440" height="260" fill="#fff"/><g fill="#000"><rect y="150" width="1440" height="5"/><rect y="168" width="1440" height="7"/><rect y="188" width="1440" height="9"/><rect y="210" width="1440" height="11"/></g></mask></defs>
-    <circle cx="300" cy="215" r="135" fill="url(#sun)" mask="url(#sunCut)" opacity=".55"/>
-    <path fill="#160f22" d="M0 260V196h40v-30h26v30h20v-58h34v58h16v-40h30v-62h12v-14h8v14h12v62h18v40h22v-24h40v24h18v-74h30v74h20v-34h28v34h30v-52h22v-26h10v26h20v52h26v-18h38v18h18v-66h26v-10h14v10h20v66h24v-30h34v30h28v-90h34v90h18v-40h30v40h26v-22h30v22h30v-62h22v-20h6v20h24v62h20v-36h34v36h24v-48h28v48h22v-28h30v28h26v-70h30v70h22v-34h28v34h20v-56h30v56h26v-24h30v24h20V260z"/>
-    <g fill="#1d1430"><path d="M1120 260c6-60 10-120 30-176" stroke="#1d1430" stroke-width="8" fill="none"/><path d="M1150 84c-30-6-60 4-82 26 30-8 52-10 82-26zm0 0c24-22 56-28 90-18-34 2-58 8-90 18zm0 0c-14-24-40-38-70-38 26 12 46 20 70 38zm0 0c22-4 50 8 66 30-24-10-42-18-66-30zm0 0c-26 6-44 24-54 50 20-22 34-34 54-50z"/>
-    <path d="M190 260c-4-50-2-100-18-150" stroke="#1d1430" stroke-width="7" fill="none"/><path d="M172 110c-26-4-50 6-68 24 26-6 44-10 68-24zm0 0c20-20 46-24 74-14-28 2-48 6-74 14zm0 0c-12-20-32-32-58-32 22 10 38 18 58 32zm0 0c18 0 40 10 52 28-20-10-34-16-52-28z"/></g>
-  </svg>
   <div class="hero-copy">
-    <img class="hero-emblem" src="assets/brand/emblem-480.png" width="240" height="240" alt="Heistpad emblem: a vault door built into a Florida sunset">
-    <p class="kicker"><span class="dot"></span>FLORIDA · 6 REGIONS · <b id="bizCount">—</b> BUSINESSES · ONE COIN EACH</p>
-    <h1>Every business<br>is a <em>job.</em></h1>
-    <p class="lede">Case a nightclub in Miami, a bait shop in the Keys, a launch pad on the Space Coast. The first crew to launch its coin runs it. Every launch kicks a cut into <b>the Vault</b>, which holds tokenized <b class="gold">$TTWO</b>.</p>
+    <a class="status-pill" href="#heists"><span class="live"></span>GTA VI is out now · Heist board is open <b>→</b></a>
+    <h1>Finish the heist.<br><span class="hl">Launch the coin.</span></h1>
+    <p class="lede">Heistpad is the launchpad for GTA VI players. Prove a heist you pulled in the game and launch its coin on pump.fun, or take over one of <b id="bizCount">—</b> businesses. Every launch sends a cut to <b>the Vault</b>, which holds tokenized Take-Two <b>$TTWO</b>.</p>
     <div class="cta">
-      <a class="btn pink" href="#map">Open the map <span>→</span></a>
-      <button type="button" class="btn ghost" data-launch>Launch a coin</button>
+      <button type="button" class="btn primary" data-heist-submit>Submit heist proof <span>→</span></button>
+      <button type="button" class="btn ghost" data-launch>Launch a business coin</button>
     </div>
-
-    <button type="button" class="hero-ca" data-copy="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump" aria-label="Copy contract address"><i>CA</i><code>CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump</code></button>
-
-    <div class="release">
-      <div class="rl-head"><span>VI DROPS IN</span><small>Nov 19 · the vault keeps stacking till then</small></div>
-      <div class="rl-clock" id="clock">
-        <div><b data-u="d">0</b><i>days</i></div><div><b data-u="h">00</b><i>hrs</i></div><div><b data-u="m">00</b><i>min</i></div><div><b data-u="s">00</b><i>sec</i></div>
-      </div>
-    </div>
+    <button type="button" class="hero-ca" data-copy="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump" aria-label="Copy contract address"><i>CA</i><code>CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump</code><span class="cp-ic" aria-hidden="true">⧉</span></button>
   </div>
 
-  <div class="hero-map" id="map">
-    <div id="mapEl" aria-label="Map of Florida businesses with coins"></div>
-    <div class="map-hud">
-      <div class="filters" id="regionFilters"></div>
+  <aside class="console" aria-label="Live Heistpad stats">
+    <div class="con-head"><span><i class="live"></i>LIVE</span><code>heistpad · solana mainnet</code></div>
+    <div class="con-main">
+      <small>Total market cap</small>
+      <b id="hudCash">$0</b>
+      <div class="con-heat"><span>Heat</span><div class="stars" id="hudStars"></div></div>
     </div>
-    <div class="hud-tr" aria-live="off"><b id="hudCash">$0</b><div class="stars big" id="hudStars"></div></div>
-    <div class="feed" id="feed" aria-live="polite"></div>
-    <div class="area" id="area"></div>
-    <div class="map-card" id="mapCard" hidden></div>
-    <div class="legend"><span><i class="lg own"></i>Taken</span><span><i class="lg open"></i>Open job</span><span><i class="lg vault"></i>The Vault</span></div>
+    <div class="con-grid">
+      <div><small>Coins live</small><b id="stCoins">—</b></div>
+      <div><small>Heists verified</small><b id="stHeists">—</b></div>
+      <div><small>Open businesses</small><b id="stOpen">—</b></div>
+      <div><small>In the Vault</small><b id="stVault" class="gold">—</b></div>
+    </div>
+    <div class="con-tape">
+      <div class="tape-head"><span>Activity</span><small id="stCap">—</small></div>
+      <div class="feed" id="feed" aria-live="polite"><p class="feed-empty">Trades on Heistpad coins show up here as they happen.</p></div>
+    </div>
+  </aside>
+</section>
+
+<section class="platforms" aria-label="Supported platforms">
+  <span class="pl-l">Proof accepted from</span>
+  <div class="hs-plat" id="hsPlat"></div>
+</section>
+
+<section id="heists" class="sec heists">
+  <div class="sec-head">
+    <div><p class="eyebrow">01 · Heist board</p><h2>Pulled a heist? Prove it.</h2></div>
+    <button type="button" class="btn primary" data-heist-submit>Submit heist proof <span>→</span></button>
+  </div>
+  <p class="sec-lede">Send a screenshot of the completion screen or the trophy/achievement with your PSN ID or Xbox gamertag. Once it's verified, <b>you</b> launch that heist's coin and pick its ticker from the heist name. One coin per heist: the first verified crew to launch takes it.</p>
+  <ol class="steps4">
+    <li><i>01</i><b>Finish the heist</b><span>PS5, PS5 Pro, Xbox Series X|S or Xbox Cloud Gaming.</span></li>
+    <li><i>02</i><b>Submit proof</b><span>Screenshot and your gamertag. A clip link helps.</span></li>
+    <li><i>03</i><b>Get verified</b><span>The crew checks it against your profile.</span></li>
+    <li><i>04</i><b>Launch $HEIST</b><span>Your coin, your creator fees.</span></li>
+  </ol>
+  <div class="hs-mine" id="hsMine" hidden></div>
+  <div class="hs-board" id="hsBoard"></div>
+</section>
+
+<section id="coins" class="sec jobs">
+  <div class="sec-head">
+    <div><p class="eyebrow">02 · Live coins</p><h2>Newest launches</h2></div>
+    <div class="seg" id="sortTabs"><button class="on" data-sort="new">New</button><button data-sort="heat">Heat</button><button data-sort="cap">Market cap</button></div>
+  </div>
+  <div class="cards" id="cards"></div>
+  <div class="boards">
+    <div class="board"><h3>Biggest businesses</h3><ol id="bizBoard"></ol></div>
+    <div class="board"><h3>Most wanted crews</h3><ol id="crewBoard"></ol></div>
   </div>
 </section>
 
-<section class="stats">
-  <div><b id="stCoins">—</b><span>coins on the map</span></div>
-  <div><b id="stCap">—</b><span>total market cap</span></div>
-  <div><b id="stOpen">—</b><span>jobs still open</span></div>
-  <div class="gold-stat"><b id="stVault">—</b><span>held in the Vault</span></div>
+<section id="jobs" class="sec dir">
+  <div class="sec-head">
+    <div><p class="eyebrow">03 · Businesses</p><h2>Take over a business</h2></div>
+    <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="bizSearch" type="search" placeholder="Search businesses" autocomplete="off" aria-label="Search businesses"></label>
+  </div>
+  <p class="sec-lede">One coin per business, ever. The first crew to launch a business's coin runs it.</p>
+  <div class="seg wrap" id="regionFilters"></div>
+  <div class="biz-grid" id="bizGrid"></div>
 </section>
 
-<section id="vault" class="vault-sec">
+<section id="fees" class="sec fees">
+  <div class="fee-card">
+    <div class="fee-copy">
+      <p class="eyebrow">04 · Your cut</p>
+      <h2>Creator fees are yours</h2>
+      <p>Every coin launched here is a real pump.fun coin with you as the creator, so it earns pump.fun's creator fee on every trade. Claim it to your wallet any time, or send it straight to another wallet in the same transaction.</p>
+      <ul class="ticks"><li>No lockups. Claim whenever you want.</li><li>Heistpad takes nothing from your fees.</li><li>Fees from all your pump.fun coins are claimed together.</li></ul>
+    </div>
+    <div class="fee-box" id="feeBox">
+      <div class="fee-num"><small>Ready to claim</small><b id="feeAmt">—</b><span id="feeUsd"></span></div>
+      <div class="fee-meta" id="feeMeta">Connect your wallet to see your fees.</div>
+      <label class="fee-to">Send to another wallet <i class="opt">optional</i><input id="feeTo" placeholder="Leave empty to claim to your own wallet" autocomplete="off" spellcheck="false"></label>
+      <button type="button" class="btn primary wide" id="feeGo">Connect wallet</button>
+      <p class="fine">Claims fees from coins still on the bonding curve. For coins that graduated to PumpSwap, claim from your pump.fun profile.</p>
+    </div>
+  </div>
+</section>
+
+<section id="vault" class="sec vault-sec">
   <div class="vault-l">
-    <p class="kicker gold-k">THE TWIST</p>
-    <h2>The Vault holds the <em>real</em> publisher.</h2>
-    <p>Most launchpads keep their fees. Every Heistpad launch sends a flat <b>0.02 SOL</b> straight into one public on-chain vault that stacks <b>tokenized Take-Two ($TTWO)</b>, the publisher behind the year's biggest game drop. Each share token is backed 1:1 by a real Nasdaq share.</p>
-    <ul class="vault-pts">
-      <li><b>0.02 SOL</b> from every launch goes straight to the Vault, in the same transaction</li>
-      <li><b>1%+ holders</b> get the Update Drop: airdrops of the official locations</li>
-      <li><b>Public</b> vault wallet, anyone can audit it</li>
-    </ul>
+    <p class="eyebrow gold">05 · The Vault</p>
+    <h2>The Vault holds the <span class="hl">real</span> publisher.</h2>
+    <p>Most launchpads keep their fees. Every Heistpad launch sends a flat <b>0.02 SOL</b> straight into one public on-chain vault that stacks <b>tokenized Take-Two ($TTWO)</b>, the publisher behind GTA VI. Each share token is backed 1:1 by a real Nasdaq share.</p>
+    <ul class="ticks"><li><b>0.02 SOL</b> from every launch, in the same transaction</li><li><b>1%+ holders</b> get the Update Drop</li><li><b>Public</b> wallet anyone can audit</li></ul>
   </div>
   <div class="vault-card">
     <div class="vc-top">
-      <img class="vc-mark" src="assets/brand/heistpad-mark.png" width="62" height="62" alt="">
-      <div>
-        <small>TOKENIZED TAKE-TWO</small>
-        <h3>$TTWO</h3>
-        <span class="vc-src">live from Solana · Backpack Securities</span>
-      </div>
+      <img class="vc-mark" src="assets/brand/heistpad-mark.png" width="48" height="48" alt="">
+      <div><small>Tokenized Take-Two</small><h3>$TTWO</h3><span class="vc-src">Live from Solana · Backpack Securities</span></div>
     </div>
     <div class="vc-price"><b id="ttwoPx">$—</b><span id="ttwoChg" class="chg">—</span></div>
     <div class="vc-grid">
@@ -114,162 +151,74 @@
       <div><span>Liquidity</span><b id="vLiq">—</b></div>
       <div><span>Company value</span><b id="vMcap">—</b></div>
     </div>
-    <button type="button" class="vc-mint" data-copy="TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo"><i>$TTWO MINT</i><code>TTWofw…88xijGvQFbKo</code></button>
-    <p class="vc-note">Every launch adds 0.02 SOL to this wallet. Balance and $TTWO price are live.</p>
+    <button type="button" class="vc-mint" data-copy="TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo"><i>$TTWO mint</i><code>TTWofw…88xijGvQFbKo</code></button>
   </div>
 </section>
 
-<section id="plan" class="plan">
-  <div class="sec-head"><div><p class="kicker gold-k">THE VAULT PLAN</p><h2>Where every fee goes</h2></div></div>
-
-  <div class="split">
-    <div class="split-bar" role="img" aria-label="Launch fee: 100% to the Vault">
-      <i style="flex:100" class="s-v"></i>
-    </div>
-    <div class="split-key">
-      <div><i class="s-v"></i><b>0.02 SOL</b><span>Flat launch fee: 100% to the Vault</span></div>
-      <div><i class="s-c"></i><b>pump.fun</b><span>Every coin is a real pump.fun coin</span></div>
-      <div><i class="s-b"></i><b>Creator</b><span>Coin creators earn pump.fun creator rewards on trades</span></div>
-      <div><i class="s-o"></i><b>0%</b><span>Heistpad takes nothing else from trades</span></div>
-    </div>
-    <p class="split-note">You pay the <b>0.02 SOL launch fee</b>, Solana's small network/rent cost and whatever first buy you choose, all in one wallet approval. Trading happens on pump.fun, under pump.fun's fees.</p>
-  </div>
-
-  <div class="flow" aria-label="How money moves through the Vault">
+<section id="plan" class="sec plan">
+  <div class="sec-head"><div><p class="eyebrow gold">06 · Vault plan</p><h2>Where every fee goes</h2></div></div>
+  <div class="flow">
     <div><b>01</b><h4>Every launch</h4><p>0.02 SOL lands in the Vault wallet the moment a coin goes live.</p></div>
     <div><b>02</b><h4>Sunday buy</h4><p>Every Sunday at 8pm ET the Vault swaps its SOL for tokenized $TTWO. The tx is posted publicly.</p></div>
-    <div><b>03</b><h4>Hold through launch</h4><p>The Vault doesn't sell $TTWO before the official map update. Every share stays on the books.</p></div>
+    <div><b>03</b><h4>Hold</h4><p>The Vault doesn't sell $TTWO before the official location update. Every share stays on the books.</p></div>
     <div><b>04</b><h4>Pay the crews</h4><p>After the update, the Vault's growth funds weekly payouts, Vault Pass perks and the Update Drop.</p></div>
   </div>
-
-  <h3 class="sub">What the Vault does for holders</h3>
   <div class="util">
-    <div><span class="u-ic">★</span><h4>Weekly Big Score</h4><p>Each week the coin with the most volume becomes the "Big Score". 10% of the Vault's weekly growth goes to its holders, split by how much they hold.</p></div>
-    <div><span class="u-ic">◎</span><h4>Vault Pass</h4><p>Hold a combined 1% or more across Heistpad coins and you get a Vault Pass: free launches, early access to new map areas and a vote on Vault calls.</p></div>
-    <div><span class="u-ic">⚑</span><h4>Crew votes</h4><p>Vault Pass holders vote on which official locations unlock first, and whether the Vault keeps buying or starts paying out.</p></div>
-    <div><span class="u-ic">⛁</span><h4>Proof of vault</h4><p>One public wallet. Live $TTWO balance on this page, and every buy and payout is linked, so anyone can audit it.</p></div>
-    <div><span class="u-ic">⇪</span><h4>Creator rewards</h4><p>Your coin lives on pump.fun, so you earn pump.fun's creator rewards on its trades. Run the biggest business on the map, earn the most.</p></div>
-    <div><span class="u-ic">⌂</span><h4>Own the spot</h4><p>One coin per business, ever. Launch first and that business is yours on the map for good. Your marker grows with your market cap.</p></div>
+    <div><h4>Weekly Big Score</h4><p>Each week the coin with the most volume becomes the Big Score. 10% of the Vault's weekly growth goes to its holders, split by how much they hold.</p></div>
+    <div><h4>Vault Pass</h4><p>Hold a combined 1% or more across Heistpad coins for free launches, early access to new locations and a vote on Vault calls.</p></div>
+    <div><h4>Crew votes</h4><p>Vault Pass holders vote on which official locations unlock first, and whether the Vault keeps buying or starts paying out.</p></div>
+    <div><h4>Proof of vault</h4><p>One public wallet. Live $TTWO balance on this page, and every buy and payout is linked.</p></div>
+    <div><h4>Creator rewards</h4><p>Your coin lives on pump.fun, so you earn pump.fun's creator fee on its trades and can claim it right here.</p></div>
+    <div><h4>Own the spot</h4><p>One coin per business and one per heist, ever. Launch first and it's yours for good.</p></div>
   </div>
-
-  <h3 class="sub">Roadmap</h3>
   <ol class="road">
-    <li class="done"><span>Now</span><h4>Florida map is open</h4><p>43 businesses, one coin each. Fees start stacking in the Vault.</p></li>
-    <li class="now"><span>Nov 19</span><h4>VI drops</h4><p>The game launches. Crews start mapping official locations and heists as players find them.</p></li>
-    <li><span>Map update</span><h4>Official locations go live</h4><p>Every official business and heist gets a slot on the map. Snapshot for the Update Drop is taken.</p></li>
-    <li><span>+72 hours</span><h4>Update Drop</h4><p>Eligible holders pick their locations and heists, and the airdrop lands. Then the Vault starts weekly payouts.</p></li>
+    <li class="done"><span>Live</span><h4>Businesses open</h4><p>One coin each. Fees stack in the Vault.</p></li>
+    <li class="done"><span>Nov 19</span><h4>GTA VI is out</h4><p>The heist board opens. Players prove heists and launch them.</p></li>
+    <li class="now"><span>Now</span><h4>Mapping the game</h4><p>Crews log official locations and heists as players find them.</p></li>
+    <li><span>Next</span><h4>Update Drop</h4><p>Snapshot, holders pick locations, airdrop lands. Weekly payouts start.</p></li>
   </ol>
 </section>
 
-<section id="drop" class="drop">
-  <div class="drop-head">
-    <p class="kicker">THE UPDATE DROP</p>
-    <h2>Hold 1%. Pick your heists.</h2>
-    <p class="drop-lede">Once VI is out and the official locations and heists are mapped, they come to Heistpad as new coins. Anyone holding a <b>combined 1% or more</b> of Heistpad coins gets airdropped that <b>same share of supply</b> in the new locations, and <b>you choose which ones</b>.</p>
-  </div>
-
+<section id="drop" class="sec drop">
+  <div class="sec-head"><div><p class="eyebrow">07 · Update Drop</p><h2>Hold 1%. Pick your heists.</h2></div></div>
+  <p class="sec-lede">GTA VI is out. As the official locations and heists get mapped, they come to Heistpad as new coins. Anyone holding a <b>combined 1% or more</b> of Heistpad coins gets airdropped that <b>same share of supply</b> in the new locations, and <b>you choose which ones</b>.</p>
   <div class="drop-grid">
     <div class="rules">
-      <h3 class="sub">The rules</h3>
       <ol>
-        <li><b>Combined 1% minimum.</b> Add up your share of each coin's supply. 0.5% of $NEOPALMS + 0.3% of $PAD39 + 0.2% of $MACCA = 1%. You're in.</li>
-        <li><b>Snapshot.</b> Taken the moment the official map update goes live, and announced 48 hours ahead. Selling before the snapshot means you're out.</li>
-        <li><b>Your share carries over.</b> For every location or heist you pick, you get the same % of its supply as your combined holding, capped at 10% per location.</li>
-        <li><b>Picks.</b> One pick per full 1% you hold, up to 10 picks. 1% = 1 pick, 3% = 3 picks, 7.4% = 7 picks. You get 72 hours to choose.</li>
-        <li><b>Hot spots.</b> If too many holders pick the same location, its airdrop is capped at 30% of supply and split in proportion to what each holder asked for.</li>
-        <li><b>Who's left out.</b> Liquidity pools, the Vault, and team and platform wallets don't count toward the snapshot.</li>
+        <li><b>Combined 1% minimum.</b> Add up your share of each coin's supply. 0.5% + 0.3% + 0.2% across three coins = 1%. You're in.</li>
+        <li><b>Snapshot.</b> Announced 48 hours ahead. Selling before the snapshot means you're out.</li>
+        <li><b>Your share carries over.</b> For every location you pick, you get the same % of its supply as your combined holding, capped at 10% per location.</li>
+        <li><b>Picks.</b> One pick per full 1% you hold, up to 10. You get 72 hours to choose.</li>
+        <li><b>Hot spots.</b> If too many holders pick the same location, its airdrop is capped at 30% of supply and split in proportion.</li>
+        <li><b>Left out.</b> Liquidity pools, the Vault, and team and platform wallets don't count.</li>
       </ol>
     </div>
-
     <div class="calc" id="calc">
-      <h3 class="sub">Check your drop</h3>
+      <h3>Check your drop</h3>
       <label class="calc-l" for="calcPct">Your combined holding <b id="calcVal">1.0%</b></label>
       <input type="range" id="calcPct" min="0" max="12" step="0.1" value="1">
       <div class="calc-out" id="calcOut"></div>
       <div class="picks-head"><span>Pick your locations</span><b id="pickCount">0 / 1</b></div>
       <div class="loc-grid" id="locGrid"></div>
-      <p class="fine">Preview only. Official names unlock after the game is out and the map is updated.</p>
+      <p class="fine">Preview only. Official names unlock as the crews map them.</p>
     </div>
   </div>
 </section>
 
-<section id="jobs" class="jobs">
-  <div class="sec-head"><h2>Newest jobs</h2><div class="sort" id="sortTabs"><button class="on" data-sort="new">New</button><button data-sort="heat">Heat</button><button data-sort="cap">Market cap</button></div></div>
-  <div class="cards" id="cards"></div>
-</section>
-
-<section id="heists" class="heists">
-  <div class="sec-head">
-    <div><p class="kicker gold-k">GTA VI · OUT NOW ON PS5 &amp; XBOX SERIES X|S</p><h2>Heist board</h2></div>
-    <button type="button" class="btn pink" data-heist-submit>Submit heist proof <span>→</span></button>
-  </div>
-  <p class="hs-lede">Finished a heist in GTA VI? Prove it. Send a screenshot of the completion screen or the trophy/achievement with your gamertag. Once the crew verifies it, <b>you</b> launch the coin for that heist, and <b>the heist name is the ticker</b>. One coin per heist: first verified crew to launch takes it.</p>
-  <ol class="hs-steps">
-    <li><i>01</i><b>Finish the heist</b><span>On PS5, PS5 Pro, Xbox Series X|S or Xbox Cloud Gaming.</span></li>
-    <li><i>02</i><b>Submit proof</b><span>Screenshot + your PSN ID or Xbox gamertag. Clip link optional.</span></li>
-    <li><i>03</i><b>Get verified</b><span>The crew checks it against your profile, usually within a few hours.</span></li>
-    <li><i>04</i><b>Launch $HEIST</b><span>Your coin, your creator fees. Ticker = heist name.</span></li>
-  </ol>
-  <div class="hs-plat" id="hsPlat"></div>
-  <div class="hs-mine" id="hsMine" hidden></div>
-  <div class="hs-board" id="hsBoard"></div>
-</section>
-
-<section id="fees" class="fees">
-  <div class="fee-card">
-    <div class="fee-copy">
-      <p class="kicker">YOUR CUT</p>
-      <h2>Creator fees</h2>
-      <p>Every coin you launch here is a real pump.fun coin with you as the creator, so it earns pump.fun's creator fee on every trade. That money is yours: claim it to your wallet any time, or send it straight to another wallet in the same transaction.</p>
-    </div>
-    <div class="fee-box" id="feeBox">
-      <div class="fee-num"><small>Ready to claim</small><b id="feeAmt">—</b><span id="feeUsd"></span></div>
-      <div class="fee-meta" id="feeMeta">Connect your wallet to see your fees.</div>
-      <label class="fee-to">Send to another wallet <i class="opt">optional</i><input id="feeTo" placeholder="Leave empty to claim to your own wallet" autocomplete="off" spellcheck="false"></label>
-      <button type="button" class="btn pink wide" id="feeGo">Connect wallet</button>
-      <p class="fine">Claims pump.fun creator fees from coins still on the bonding curve. For coins that graduated to PumpSwap, claim from your profile on pump.fun.</p>
-    </div>
-  </div>
-</section>
-
-<section class="boards">
-  <div class="board"><h3>Biggest businesses</h3><ol id="bizBoard"></ol></div>
-  <div class="board"><h3>Most wanted crews</h3><ol id="crewBoard"></ol></div>
-</section>
-
-<section class="regions">
-  <h2>The 6 regions</h2>
-  <div class="reg-grid" id="regGrid"></div>
-</section>
-
-<section class="how">
-  <h2>How a job works</h2>
-  <div class="steps">
-    <div><svg class="sic" viewBox="0 0 48 48"><circle cx="21" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="4"/><path d="M30 30l10 10" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg><i>01</i><h4>Case the joint</h4><p>Pick any open business on the map. A strip club in Miami, an airboat tour in the Glades, a shipyard on the Gulf.</p></div>
-    <div><svg class="sic" viewBox="0 0 48 48"><path d="M24 4c8 6 12 16 10 28H14C12 20 16 10 24 4z" fill="currentColor"/><circle cx="24" cy="18" r="4" fill="#120d1c"/><path d="M14 32l-6 8 10-2M34 32l6 8-10-2M20 36l4 8 4-8" fill="currentColor"/></svg><i>02</i><h4>Pull the job</h4><p>Name, ticker, image. One approval and the coin is live. Your business is yours and your wanted level starts climbing.</p></div>
-    <div><svg class="sic" viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="6" fill="currentColor"/><circle cx="24" cy="24" r="10" fill="none" stroke="#120d1c" stroke-width="3.5"/><path d="M24 14v6M24 28v6M14 24h6M28 24h6" stroke="#120d1c" stroke-width="3.5"/></svg><i>03</i><h4>Hit the vault</h4><p>Your marker grows with your market cap. Your 0.02 SOL launch fee feeds the $TTWO Vault, and the hottest crew each week gets a cut.</p></div>
+<section id="kit" class="sec kit">
+  <div class="sec-head"><div><p class="eyebrow">Media kit</p><h2>Spread the word</h2></div><p class="kit-sub">Posters, banners and logos. Tap one to download it.</p></div>
+  <div class="kit-grid">
+    <a class="kit-card" href="assets/brand/heistpad-poster.png" download><img src="assets/brand/thumb-poster.jpg" alt="Heistpad poster" loading="lazy"><span>Poster · 1080×1350</span></a>
+    <a class="kit-card" href="assets/brand/heistpad-story.png" download><img src="assets/brand/thumb-story.jpg" alt="Heistpad story" loading="lazy"><span>Story · 1080×1920</span></a>
+    <a class="kit-card wide" href="assets/brand/heistpad-xheader.png" download><img src="assets/brand/thumb-xheader.jpg" alt="Heistpad X header banner" loading="lazy"><span>X header · 1500×500</span></a>
+    <a class="kit-card sq" href="assets/brand/heistpad-pfp.png" download><img src="assets/brand/emblem-480.png" alt="Heistpad profile picture" loading="lazy"><span>Profile pic</span></a>
+    <a class="kit-card sq" href="assets/brand/heistpad-wordmark.png" download><img src="assets/brand/wordmark-1240.png" alt="Heistpad wordmark" loading="lazy"><span>Wordmark</span></a>
   </div>
 </section>
 </main>
 
-<section id="kit" class="kit">
-  <div class="sec-head"><div><p class="kicker gold-k">SPREAD THE WORD</p><h2>Heist kit</h2></div><p class="kit-sub">Posters, banners and logos. Tap any one to download it.</p></div>
-  <div class="kit-grid">
-    <a class="kit-card tall" href="assets/brand/heistpad-poster.png" download><img src="assets/brand/thumb-poster.jpg" alt="Heistpad poster: Every business is a job" loading="lazy"><span>Poster · 1080×1350</span></a>
-    <a class="kit-card tall" href="assets/brand/heistpad-story.png" download><img src="assets/brand/thumb-story.jpg" alt="Heistpad story: Hold 1%, pick your heists" loading="lazy"><span>Story · 1080×1920</span></a>
-    <div class="kit-col">
-      <a class="kit-card" href="assets/brand/heistpad-xheader.png" download><img src="assets/brand/thumb-xheader.jpg" alt="Heistpad X header banner" loading="lazy"><span>X header · 1500×500</span></a>
-      <div class="kit-row">
-        <a class="kit-card sq" href="assets/brand/heistpad-pfp.png" download><img src="assets/brand/emblem-480.png" alt="Heistpad profile picture" loading="lazy"><span>Profile pic</span></a>
-        <a class="kit-card sq" href="assets/brand/heistpad-mark.png" download><img src="assets/brand/heistpad-mark.png" alt="Heistpad app mark" loading="lazy"><span>App mark</span></a>
-      </div>
-      <a class="kit-card wm" href="assets/brand/heistpad-wordmark.png" download><img src="assets/brand/wordmark-1240.png" alt="Heistpad wordmark" loading="lazy"><span>Wordmark · transparent</span></a>
-    </div>
-  </div>
-</section>
-
 <footer class="foot">
-  <img class="foot-wm" src="assets/brand/wordmark-1240.png" width="310" height="75" alt="Heistpad — every launch is a heist">
+  <div class="foot-brand"><img class="mark" src="assets/brand/mark-96.png" width="26" height="26" alt=""><span>Heist<b>pad</b></span></div>
   <p>Coins launched here are created on pump.fun by their creators, from their own wallets. Heistpad is not affiliated with, endorsed by or sponsored by Take-Two Interactive or Rockstar Games. $TTWO is a tokenized equity issued by Backpack Securities; price data from Jupiter. Nothing here is investment advice.</p>
 </footer>
 
@@ -277,7 +226,7 @@
 <div class="modal" id="launchModal" hidden>
   <form class="sheet" id="launchForm">
     <button type="button" class="x" data-close aria-label="Close">×</button>
-    <p class="kicker" id="lfKick">PULL A JOB</p>
+    <p class="eyebrow" id="lfKick">PULL A JOB</p>
     <h3 id="lfTitle">Launch a coin</h3>
     <label id="lfBizL">Business<select id="lfBiz" required></select></label>
     <div class="hf-tick" id="lfHeistNote" hidden></div>
@@ -296,7 +245,7 @@
     <ol class="lf-steps" id="lfSteps" hidden><li data-s="upload">Uploading your art</li><li data-s="build">Building the transaction</li><li data-s="sign">Approve in your wallet</li><li data-s="confirm">Confirming on-chain</li></ol>
     <div class="lf-fee"><span>Launch fee</span><b id="lfFee">0.02 SOL</b><small>100% goes to the Vault</small></div>
     <p class="fine">Your coin is created on pump.fun from your own wallet. You'll also pay Solana's small network/rent cost (about 0.02 SOL) plus your first buy. Heistpad never holds your coins or keys.</p>
-    <button class="btn pink wide" type="submit" id="lfGo">Connect wallet to launch <span>→</span></button>
+    <button class="btn primary wide" type="submit" id="lfGo">Connect wallet to launch <span>→</span></button>
   </form>
 </div>
 
@@ -304,19 +253,24 @@
 <div class="modal" id="heistModal" hidden>
   <form class="sheet" id="heistForm" novalidate>
     <button type="button" class="x" data-close-h aria-label="Close">×</button>
-    <p class="kicker">HEIST COMPLETE?</p>
+    <p class="eyebrow">Heist complete?</p>
     <h3>Submit proof</h3>
-    <label>Heist name <i class="opt">exactly as it shows in the game</i><input id="hfHeist" maxlength="40" placeholder="e.g. The Bank Job" autocomplete="off"></label>
-    <div class="hf-tick">Your coin's ticker: <b id="hfTick">$—</b></div>
+    <label>Heist name <i class="opt">as it shows in the game</i><input id="hfHeist" maxlength="40" placeholder="e.g. The Jewelry Store Job" autocomplete="off"></label>
+    <div class="tick-pick" id="hfTickWrap" hidden>
+      <span class="tp-l">Pick your ticker</span>
+      <div class="tp-opts" id="hfTickOpts"></div>
+      <label class="tp-own">Or type your own abbreviation<input id="hfTickOwn" maxlength="10" placeholder="e.g. JSJ" autocomplete="off" autocapitalize="characters"></label>
+      <div class="hf-tick">Your coin's ticker: <b id="hfTick">$—</b></div>
+    </div>
     <label>Platform<select id="hfPlat"></select></label>
     <label><span id="hfIdLbl">PSN Online ID</span><input id="hfId" maxlength="64" placeholder="Your PSN Online ID" autocomplete="off" spellcheck="false"></label>
     <label>Rockstar Games ID <i class="opt">optional, helps us match you</i><input id="hfRid" maxlength="16" placeholder="Social Club name" autocomplete="off" spellcheck="false"></label>
     <label class="file">Proof screenshot<input id="hfProof" type="file" accept="image/png,image/jpeg,image/webp"><span id="hfProofTxt">Completion screen or trophy/achievement unlock (required)</span></label>
     <label>Clip link <i class="opt">optional</i><input id="hfClip" type="url" placeholder="https:// YouTube, X, Twitch, PS or Xbox share link" autocomplete="off"></label>
-    <label>Anything else? <i class="opt">optional</i><textarea id="hfNote" maxlength="300" rows="2" placeholder="Date you finished it, crew members, etc."></textarea></label>
+    <label>Anything else? <i class="opt">optional</i><textarea id="hfNote" maxlength="300" rows="2" placeholder="When you finished it, crew members, etc."></textarea></label>
     <p class="lf-err" id="hfErr" role="alert" hidden></p>
     <p class="fine">Your screenshot, heist and gamertag are shown publicly on the Heist Board once verified. Fake or edited proof gets rejected. Submitting is free.</p>
-    <button class="btn pink wide" type="submit" id="hfGo">Connect wallet to submit <span>→</span></button>
+    <button class="btn primary wide" type="submit" id="hfGo">Connect wallet to submit <span>→</span></button>
   </form>
 </div>
 
@@ -324,25 +278,25 @@
 <div class="modal" id="noWallet" hidden>
   <div class="sheet nw">
     <button type="button" class="x" data-close-nw aria-label="Close">×</button>
-    <p class="kicker">NO WALLET FOUND</p>
+    <p class="eyebrow">No wallet found</p>
     <h3>This browser has no Solana wallet</h3>
     <p class="nw-p">To launch, open heistpad.live somewhere your wallet lives:</p>
     <ul class="nw-list">
       <li><b>Computer:</b> Chrome, Brave or Edge with the <b>Phantom</b> or <b>Solflare</b> extension installed and unlocked.</li>
       <li><b>Phone:</b> open the <b>Phantom</b> app, tap the browser icon and go to heistpad.live.</li>
     </ul>
-    <div class="nw-row nw-mobile"><a class="btn pink" data-open="phantom" href="#">Open in Phantom</a><a class="btn ghost" data-open="solflare" href="#">Open in Solflare</a></div>
-    <div class="nw-row"><button type="button" class="btn ghost" data-copy-link>Copy this page's link</button><a class="btn pink" href="https://phantom.com/download" target="_blank" rel="noopener">Get Phantom</a></div>
+    <div class="nw-row nw-mobile"><a class="btn primary" data-open="phantom" href="#">Open in Phantom</a><a class="btn ghost" data-open="solflare" href="#">Open in Solflare</a></div>
+    <div class="nw-row"><button type="button" class="btn ghost" data-copy-link>Copy this page's link</button><a class="btn primary" href="https://phantom.com/download" target="_blank" rel="noopener">Get Phantom</a></div>
   </div>
 </div>
 
 <!-- mission passed -->
 <div class="passed" id="passed" hidden>
   <div class="ps-in">
-    <small>JOB COMPLETE</small>
-    <h2>mission passed!</h2>
+    <small>Launch complete</small>
+    <h2>Mission passed</h2>
     <p id="psTxt">+ RESPECT</p>
-    <button type="button" class="btn ghost" data-close-passed>Back to the map</button>
+    <button type="button" class="btn ghost" data-close-passed>Back to the board</button>
   </div>
 </div>
 
@@ -355,7 +309,6 @@
     el.textContent = 'Site error: ' + e.message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 8000);
   });
 </script>
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.0/lib/index.iife.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
 <script type="module">import { Buffer } from "https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm"; window.Buffer = window.Buffer || Buffer;</script>
@@ -363,6 +316,6 @@
   // Where the Heistpad API lives. Local dev talks to wrangler on :8787.
   window.HEIST_API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://heistpad-api.heistpad-api.workers.dev';
 </script>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>
