@@ -505,3 +505,50 @@ body::before{background:radial-gradient(1000px 520px at 80% -15%,rgba(255,61,139
 @media (max-width:760px){.hero-ca code{font-size:12px}}
 .nw-mobile{display:none}
 @media (pointer:coarse),(max-width:760px){.nw-mobile{display:flex}}
+
+/* ---------- heist board (v21) ---------- */
+.heists,.fees{padding:24px clamp(16px,3vw,36px) 40px}
+.hs-lede{color:var(--mut);max-width:760px;margin:-8px 0 18px;font-size:16px}
+.hs-lede b{color:var(--txt)}
+.hs-steps{list-style:none;margin:0 0 16px;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.hs-steps li{padding:14px;border-radius:14px;background:var(--card);border:1px solid var(--line);display:grid;gap:3px}
+.hs-steps i{font:700 12px "JetBrains Mono",monospace;font-style:normal;color:var(--pink2)}
+.hs-steps b{font-size:15px}.hs-steps span{color:var(--mut);font-size:13px}
+.hs-plat{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.hs-plat span{padding:6px 11px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#0f0b18;color:var(--txt)}
+.hs-plat span.on::before{content:"●";color:var(--green);margin-right:6px}
+.hs-plat span.soon{color:#6f6385}.hs-plat span.soon::after{content:" · not on PC yet";font-weight:500}
+.hs-mine{margin-bottom:18px;padding:16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,61,139,.12),rgba(255,200,61,.06));border:1px solid rgba(255,61,139,.4)}
+.hs-mine h3{margin:0 0 10px;font-size:18px;text-transform:uppercase;letter-spacing:.5px}
+.hm-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.hm-row:first-of-type{border-top:0}
+.hm-row img{width:54px;height:54px;border-radius:10px;object-fit:cover;background:#000}
+.hm-row .hm-t{flex:1;min-width:160px}.hm-row .hm-t b{display:block}.hm-row .hm-t small{color:var(--mut)}
+.chip{font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.chip.pending{color:var(--gold);border-color:rgba(255,200,61,.5)}.chip.approved{color:var(--green);border-color:rgba(62,224,143,.5)}
+.chip.rejected{color:var(--red);border-color:rgba(255,77,94,.5)}.chip.launched{color:var(--pink2);border-color:rgba(255,61,139,.5)}
+.hm-why{width:100%;font-size:13px;color:#ffb3bb}
+.hs-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.hb{border-radius:16px;background:var(--card);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
+.hb-shot{position:relative;aspect-ratio:16/9;background:#000 center/cover no-repeat}
+.hb-shot .chip{position:absolute;left:10px;top:10px;background:rgba(12,9,19,.85)}
+.hb-bd{padding:14px;display:grid;gap:6px;flex:1}
+.hb-bd h4{margin:0;font-size:17px}.hb-bd .tk{font:700 13px "JetBrains Mono",monospace;color:var(--gold)}
+.hb-who{font-size:13px;color:var(--mut)}.hb-who b{color:var(--txt)}
+.hb-bd .c-bot{margin-top:auto}
+.hs-empty{grid-column:1/-1;padding:28px;border-radius:16px;border:1px dashed var(--line);text-align:center;color:var(--mut);display:grid;gap:10px;justify-items:center}
+.hs-empty b{color:var(--txt);font-size:17px}
+.hf-tick{font-size:13px;color:var(--mut);margin-top:-4px}.hf-tick b{font-family:"JetBrains Mono";color:var(--gold)}
+.sheet select optgroup{color:var(--mut)}
+.fee-card{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;padding:24px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+.fee-copy p{color:var(--mut);max-width:520px}
+.fee-box{display:grid;gap:12px;padding:18px;border-radius:16px;background:#0f0b18;border:1px solid var(--line)}
+.fee-num{display:grid;gap:2px}.fee-num small{font-size:11px;letter-spacing:1.6px;font-weight:700;color:var(--mut);text-transform:uppercase}
+.fee-num b{font:700 34px "JetBrains Mono",monospace;color:var(--gold)}.fee-num span{color:var(--mut);font-size:13px}
+.fee-meta{font-size:13px;color:var(--mut)}
+.fee-to{display:grid;gap:6px;font-size:12px;font-weight:700;color:var(--mut)}
+.fee-to input{width:100%;padding:12px;border-radius:11px;border:1px solid var(--line);background:#141020;color:var(--txt);font:500 13px "JetBrains Mono",monospace}
+.fee-to .opt{font-style:normal;font-weight:500;color:#6f6385}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+@media(max-width:900px){.hs-steps{grid-template-columns:1fr 1fr}.fee-card{grid-template-columns:1fr}}
+@media(max-width:520px){.hs-steps{grid-template-columns:1fr}}

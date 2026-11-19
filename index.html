@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="styles.css?v=20" rel="stylesheet">
+<link href="styles.css?v=21" rel="stylesheet">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <meta name="theme-color" content="#0c0913">
@@ -29,7 +29,7 @@
     <b>HEIST</b><span>PAD</span>
   </a>
   <nav class="links">
-    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><a href="#kit">Kit</a><button type="button" data-launch>Launch</button>
+    <a href="#home" class="on">Home</a><a href="#map">Map</a><a href="#jobs">Jobs</a><a href="#heists">Heists</a><a href="#vault">Vault</a><a href="#drop">Airdrop</a><a href="#kit">Kit</a><button type="button" data-launch>Launch</button>
   </nav>
   <button type="button" class="ca-chip" data-copy="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump" aria-label="Copy Heistpad contract address" title="CM5yQdKJXazgyRt4ys9c2F1JnjVJ5AZ2kEFya2vupump"><i>CA</i><code>CM5yQd…a2vupump</code></button>
   <button type="button" class="snd" id="snd" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="m" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -198,6 +198,40 @@
   <div class="cards" id="cards"></div>
 </section>
 
+<section id="heists" class="heists">
+  <div class="sec-head">
+    <div><p class="kicker gold-k">GTA VI · OUT NOW ON PS5 &amp; XBOX SERIES X|S</p><h2>Heist board</h2></div>
+    <button type="button" class="btn pink" data-heist-submit>Submit heist proof <span>→</span></button>
+  </div>
+  <p class="hs-lede">Finished a heist in GTA VI? Prove it. Send a screenshot of the completion screen or the trophy/achievement with your gamertag. Once the crew verifies it, <b>you</b> launch the coin for that heist, and <b>the heist name is the ticker</b>. One coin per heist: first verified crew to launch takes it.</p>
+  <ol class="hs-steps">
+    <li><i>01</i><b>Finish the heist</b><span>On PS5, PS5 Pro, Xbox Series X|S or Xbox Cloud Gaming.</span></li>
+    <li><i>02</i><b>Submit proof</b><span>Screenshot + your PSN ID or Xbox gamertag. Clip link optional.</span></li>
+    <li><i>03</i><b>Get verified</b><span>The crew checks it against your profile, usually within a few hours.</span></li>
+    <li><i>04</i><b>Launch $HEIST</b><span>Your coin, your creator fees. Ticker = heist name.</span></li>
+  </ol>
+  <div class="hs-plat" id="hsPlat"></div>
+  <div class="hs-mine" id="hsMine" hidden></div>
+  <div class="hs-board" id="hsBoard"></div>
+</section>
+
+<section id="fees" class="fees">
+  <div class="fee-card">
+    <div class="fee-copy">
+      <p class="kicker">YOUR CUT</p>
+      <h2>Creator fees</h2>
+      <p>Every coin you launch here is a real pump.fun coin with you as the creator, so it earns pump.fun's creator fee on every trade. That money is yours: claim it to your wallet any time, or send it straight to another wallet in the same transaction.</p>
+    </div>
+    <div class="fee-box" id="feeBox">
+      <div class="fee-num"><small>Ready to claim</small><b id="feeAmt">—</b><span id="feeUsd"></span></div>
+      <div class="fee-meta" id="feeMeta">Connect your wallet to see your fees.</div>
+      <label class="fee-to">Send to another wallet <i class="opt">optional</i><input id="feeTo" placeholder="Leave empty to claim to your own wallet" autocomplete="off" spellcheck="false"></label>
+      <button type="button" class="btn pink wide" id="feeGo">Connect wallet</button>
+      <p class="fine">Claims pump.fun creator fees from coins still on the bonding curve. For coins that graduated to PumpSwap, claim from your profile on pump.fun.</p>
+    </div>
+  </div>
+</section>
+
 <section class="boards">
   <div class="board"><h3>Biggest businesses</h3><ol id="bizBoard"></ol></div>
   <div class="board"><h3>Most wanted crews</h3><ol id="crewBoard"></ol></div>
@@ -243,9 +277,10 @@
 <div class="modal" id="launchModal" hidden>
   <form class="sheet" id="launchForm">
     <button type="button" class="x" data-close aria-label="Close">×</button>
-    <p class="kicker">PULL A JOB</p>
-    <h3>Launch a coin</h3>
-    <label>Business<select id="lfBiz" required></select></label>
+    <p class="kicker" id="lfKick">PULL A JOB</p>
+    <h3 id="lfTitle">Launch a coin</h3>
+    <label id="lfBizL">Business<select id="lfBiz" required></select></label>
+    <div class="hf-tick" id="lfHeistNote" hidden></div>
     <div class="row2">
       <label>Coin name<input id="lfName" maxlength="32" minlength="2" placeholder="Neon Palms" required autocomplete="off"></label>
       <label>Ticker<input id="lfTick" maxlength="10" minlength="2" placeholder="NEON" required autocomplete="off" autocapitalize="characters"></label>
@@ -262,6 +297,26 @@
     <div class="lf-fee"><span>Launch fee</span><b id="lfFee">0.02 SOL</b><small>100% goes to the Vault</small></div>
     <p class="fine">Your coin is created on pump.fun from your own wallet. You'll also pay Solana's small network/rent cost (about 0.02 SOL) plus your first buy. Heistpad never holds your coins or keys.</p>
     <button class="btn pink wide" type="submit" id="lfGo">Connect wallet to launch <span>→</span></button>
+  </form>
+</div>
+
+<!-- heist proof modal -->
+<div class="modal" id="heistModal" hidden>
+  <form class="sheet" id="heistForm" novalidate>
+    <button type="button" class="x" data-close-h aria-label="Close">×</button>
+    <p class="kicker">HEIST COMPLETE?</p>
+    <h3>Submit proof</h3>
+    <label>Heist name <i class="opt">exactly as it shows in the game</i><input id="hfHeist" maxlength="40" placeholder="e.g. The Bank Job" autocomplete="off"></label>
+    <div class="hf-tick">Your coin's ticker: <b id="hfTick">$—</b></div>
+    <label>Platform<select id="hfPlat"></select></label>
+    <label><span id="hfIdLbl">PSN Online ID</span><input id="hfId" maxlength="64" placeholder="Your PSN Online ID" autocomplete="off" spellcheck="false"></label>
+    <label>Rockstar Games ID <i class="opt">optional, helps us match you</i><input id="hfRid" maxlength="16" placeholder="Social Club name" autocomplete="off" spellcheck="false"></label>
+    <label class="file">Proof screenshot<input id="hfProof" type="file" accept="image/png,image/jpeg,image/webp"><span id="hfProofTxt">Completion screen or trophy/achievement unlock (required)</span></label>
+    <label>Clip link <i class="opt">optional</i><input id="hfClip" type="url" placeholder="https:// YouTube, X, Twitch, PS or Xbox share link" autocomplete="off"></label>
+    <label>Anything else? <i class="opt">optional</i><textarea id="hfNote" maxlength="300" rows="2" placeholder="Date you finished it, crew members, etc."></textarea></label>
+    <p class="lf-err" id="hfErr" role="alert" hidden></p>
+    <p class="fine">Your screenshot, heist and gamertag are shown publicly on the Heist Board once verified. Fake or edited proof gets rejected. Submitting is free.</p>
+    <button class="btn pink wide" type="submit" id="hfGo">Connect wallet to submit <span>→</span></button>
   </form>
 </div>
 
@@ -308,6 +363,6 @@
   // Where the Heistpad API lives. Local dev talks to wrangler on :8787.
   window.HEIST_API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8787' : 'https://heistpad-api.heistpad-api.workers.dev';
 </script>
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>

@@ -187,6 +187,7 @@
     $('#walletBtn').classList.toggle('on', !!wallet); $('#walletTxt').textContent = wallet ? shortCa(wallet.toBase58()) : 'Connect wallet';
     BIZ.forEach((b) => { if (b.coin) b.coin.mine = !!wallet && b.coin.creator === wallet.toBase58(); });
     syncGo(); renderAll();
+    window.dispatchEvent(new Event('hp:wallet'));
   }
   const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
   const IN_WALLET_APP = /Phantom|Solflare|Backpack/i.test(navigator.userAgent);
@@ -310,9 +311,26 @@
   const modal = $('#launchModal');
   let imgData = null, imgFile = null;
   const setErr = (msg) => { const e = $('#lfErr'); e.textContent = msg || ''; e.hidden = !msg; };
+  // heist mode: launching the coin for a verified heist (name + ticker are fixed to the heist)
+  let heistMode = null;
+  function setMode(h) {
+    heistMode = h;
+    $('#lfBizL').hidden = !!h; $('#lfBiz').required = !h;
+    $('#lfName').readOnly = $('#lfTick').readOnly = !!h;
+    $('#lfKick').textContent = h ? 'HEIST VERIFIED' : 'PULL A JOB';
+    $('#lfTitle').textContent = h ? 'Launch your heist coin' : 'Launch a coin';
+    const n = $('#lfHeistNote'); n.hidden = !h;
+    if (h) n.innerHTML = `Completed by <b>${esc(h.gamertag)}</b> on ${esc(h.platformLabel)}. The heist name is the coin name and <b>$${esc(h.ticker)}</b> is the ticker.`;
+  }
+  window.hpLaunchHeist = (h) => {
+    $('#launchForm').reset(); imgData = null; imgFile = null; setErr(''); setSteps(null); setMode(h); syncGo();
+    $('#lfName').value = h.heist.slice(0, 32); $('#lfTick').value = h.ticker;
+    $('#lfImgTxt').textContent = 'Coin image (optional: uses your proof screenshot if empty)';
+    modal.hidden = false;
+  };
   function openLaunch(bizId) {
     const open = BIZ.filter((b) => !b.coin);
-    $('#launchForm').reset(); imgData = null; imgFile = null; $('#lfImgTxt').textContent = "Pick your coin's image (required)"; setErr(''); setSteps(null); syncGo();
+    $('#launchForm').reset(); setMode(null); imgData = null; imgFile = null; $('#lfImgTxt').textContent = "Pick your coin's image (required)"; setErr(''); setSteps(null); syncGo();
     if (!open.length) { toast('Every business on the map is taken'); return; }
     $('#lfBiz').innerHTML = REGIONS.map((r) => {
       const list = open.filter((b) => b.rid === r.id);
@@ -366,7 +384,8 @@
     e.preventDefault(); if (busy) return;
     if (!wallet) { connectWallet(); return; }
     if (!CFG.live) return setErr('Launches are not switched on yet. Check back soon.');
-    const b = BIZ.find((x) => x.id === $('#lfBiz').value);
+    const H = heistMode;
+    const b = H ? { id: `heist-${H.id}`, name: H.heist, heist: true } : BIZ.find((x) => x.id === $('#lfBiz').value);
     const name = $('#lfName').value.trim().replace(/\s+/g, ' '), tick = $('#lfTick').value.trim();
     const devBuy = Math.max(0, Math.min(10, parseFloat($('#lfBuy').value) || 0));
     if (!b) return setErr('Pick a business to launch.');
@@ -374,7 +393,7 @@
     if (name.length < 2) return setErr('Coin name needs at least 2 characters.');
     if (tick.length < 2) return setErr('Ticker needs 2–10 letters or numbers.');
     if (coins().some((x) => x.coin.tick.toUpperCase() === tick)) return setErr(`$${tick} is already on the map. Try another ticker.`);
-    if (!imgFile) return setErr('Add an image for your coin.');
+    if (!imgFile && !H) return setErr('Add an image for your coin.');
     const links = [$('#lfX').value.trim(), $('#lfTg').value.trim()];
     if (links.some((u) => u && !/^https:\/\//.test(u))) return setErr('Links must start with https://');
     setErr(''); busy = true; syncGo(); let held = null, signed = false;
@@ -387,7 +406,7 @@
       setSteps('upload');
       const fd = new FormData();
       Object.entries({ code: CREW, bizId: b.id, creator: wallet.toBase58(), name, symbol: tick, description: $('#lfDesc').value.trim(), twitter: links[0], telegram: links[1] }).forEach(([k, v]) => fd.append(k, v));
-      fd.append('image', imgFile, imgFile.name);
+      if (imgFile) fd.append('image', imgFile, imgFile.name);
       const rsv = held = await (async () => { const r = await fetch(`${API}/api/reserve`, { method: 'POST', body: fd }); const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; })();
       // 2. pump.fun create tx from PumpPortal, then add the Vault fee to the same transaction
       setSteps('build');
@@ -408,11 +427,11 @@
       // 3. user approves in their own wallet
       setSteps('sign');
       let signature;
-      signed = true; signature = await signAndSend(tx, { bizId: b.id, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol, name: b.name });
+      signed = true; signature = await signAndSend(tx, { bizId: b.id, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol, name: b.name, heist: !!H });
       if (typeof signature !== 'string') throw new Error('Your wallet did not return a transaction signature.');
       // 4. wait for the chain, then record the claim
       setSteps('confirm');
-      await finishLaunch({ bizId: b.id, signature, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol });
+      await finishLaunch({ bizId: b.id, signature, mint: mintKp.publicKey.toBase58(), creator: wallet.toBase58(), token: rsv.token, symbol: rsv.symbol, name: b.name, heist: !!H });
     } catch (err) {
       const m = String(err?.message || err);
       if (held && !signed) fetch(`${API}/api/release`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bizId: b.id, token: held.token }) }).catch(() => {});
@@ -433,8 +452,9 @@
     $$('#lfSteps li').forEach((li) => (li.className = 'ok'));
     await loadCoins();
     modal.hidden = true; setSteps(null);
-    $('#psTxt').textContent = `${b ? b.name : 'Your business'} is yours · $${p.symbol} is live on pump.fun · + RESPECT`;
+    $('#psTxt').textContent = p.heist ? `${p.name || 'Your heist'} · $${p.symbol} is live on pump.fun · creator fees are yours` : `${b ? b.name : 'Your business'} is yours · $${p.symbol} is live on pump.fun · + RESPECT`;
     $('#passed').hidden = false; sfx.passed(); flashStars(); hud();
+    window.dispatchEvent(new Event('hp:launched'));
     if (b) map?.flyTo({ center: [b.lng, b.lat], zoom: 12.5 });
   }
 
@@ -452,6 +472,7 @@
       } else if (step === 'sign') {
         const d = DL.get(), pending = DL.pending(); DL.pending(null);
         const ans = dlOpen(q, d);
+        if (pending?.kind === 'claim') { toast('Fee claim sent. It lands in a few seconds.', 6000); setTimeout(() => window.dispatchEvent(new Event('hp:launched')), 6000); return; }
         if (!pending) throw new Error('Launch details were lost. Your transaction: ' + ans.signature);
         modal.hidden = false; setErr(''); setSteps('confirm');
         await finishLaunch({ ...pending, signature: ans.signature });
@@ -624,6 +645,150 @@
       requestAnimationFrame(anim);
     })(t0);
   }
+
+  /* ---------- heist proofs: finish a heist in GTA VI, prove it, launch $HEISTNAME ---------- */
+  // Matches the API: GTA VI launched Nov 19 2026 on PS5 and Xbox Series X|S; no PC version announced yet.
+  let PLATS = [
+    { id: 'ps5', label: 'PlayStation 5', net: 'psn', idName: 'PSN Online ID' }, { id: 'ps5pro', label: 'PlayStation 5 Pro', net: 'psn', idName: 'PSN Online ID' },
+    { id: 'psportal', label: 'PlayStation Portal (Remote Play)', net: 'psn', idName: 'PSN Online ID' },
+    { id: 'xsx', label: 'Xbox Series X', net: 'xbox', idName: 'Xbox gamertag' }, { id: 'xss', label: 'Xbox Series S', net: 'xbox', idName: 'Xbox gamertag' },
+    { id: 'xcloud', label: 'Xbox Cloud Gaming', net: 'xbox', idName: 'Xbox gamertag' },
+    { id: 'steam', label: 'PC · Steam', net: 'steam', idName: 'Steam profile', soon: true }, { id: 'rgl', label: 'PC · Rockstar Games Launcher', net: 'rockstar', idName: 'Rockstar Games ID', soon: true },
+    { id: 'epic', label: 'PC · Epic Games Store', net: 'epic', idName: 'Epic display name', soon: true },
+  ];
+  const ID_PH = { psn: 'Your PSN Online ID', xbox: 'Your Xbox gamertag (e.g. MurdaMan#1234)', steam: 'steamcommunity.com link, SteamID64 or name', rockstar: 'Your Rockstar Games ID', epic: 'Your Epic display name' };
+  const tickerOf = (n) => { let t = String(n).toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim(); if (t.replace(/ /g, '').length > 10) t = t.replace(/^THE\s+/, ''); return t.replace(/ /g, '').slice(0, 10); };
+  const gw = (u) => (u || '').replace('https://ipfs.io/ipfs/', 'https://gateway.pinata.cloud/ipfs/');
+  const STATUS = { pending: 'IN REVIEW', approved: 'VERIFIED', rejected: 'REJECTED', launched: 'COIN LIVE' };
+  let HEISTS = { board: [], mine: [] };
+  function renderPlats() {
+    $('#hsPlat').innerHTML = PLATS.map((p) => `<span class="${p.soon ? 'soon' : 'on'}">${esc(p.label)}</span>`).join('');
+    const grp = (net) => PLATS.filter((p) => (net === 'pc' ? ['steam', 'rockstar', 'epic'].includes(p.net) : p.net === net));
+    const opt = (p) => `<option value="${p.id}" ${p.soon ? 'disabled' : ''}>${esc(p.label)}${p.soon ? ' (not out yet)' : ''}</option>`;
+    const sel = $('#hfPlat'), cur = sel.value;
+    sel.innerHTML = `<optgroup label="PlayStation">${grp('psn').map(opt).join('')}</optgroup><optgroup label="Xbox">${grp('xbox').map(opt).join('')}</optgroup><optgroup label="PC">${grp('pc').map(opt).join('')}</optgroup>`;
+    if (cur && PLATS.some((p) => p.id === cur && !p.soon)) sel.value = cur;
+    syncIdField();
+  }
+  function syncIdField() { const p = PLATS.find((x) => x.id === $('#hfPlat').value) || PLATS[0]; $('#hfIdLbl').textContent = p.idName; $('#hfId').placeholder = ID_PH[p.net] || ''; }
+  $('#hfPlat').addEventListener('change', syncIdField);
+  $('#hfHeist').addEventListener('input', (e) => { const t = tickerOf(e.target.value); $('#hfTick').textContent = t.length >= 2 ? `$${t}` : '$—'; });
+  function renderHeists() {
+    const { board, mine } = HEISTS;
+    const box = $('#hsMine'); box.hidden = !wallet || !mine.length;
+    if (!box.hidden) box.innerHTML = `<h3>Your heists</h3>` + mine.map((h) => `<div class="hm-row"><img src="${esc(gw(h.image || h.proof))}" alt="" loading="lazy"><div class="hm-t"><b>${esc(h.heist)} <span class="tk" style="color:var(--gold);font-family:JetBrains Mono">$${esc(h.ticker)}</span></b><small>${esc(h.gamertag)} · ${esc(h.platformLabel)}</small></div><span class="chip ${h.status}">${STATUS[h.status] || h.status}</span>${
+      h.status === 'approved' && h.taken ? `<span class="hm-why" style="width:auto;color:var(--mut)">Another crew launched $${esc(h.ticker)} first</span>` :
+      h.status === 'approved' ? `<button type="button" class="btn pink sm" data-heist-launch="${h.id}">Launch $${esc(h.ticker)} →</button>` :
+      h.status === 'launched' && h.mint ? `<a class="btn ghost sm" href="${pumpUrl(h.mint)}" target="_blank" rel="noopener">View on pump.fun</a>` :
+      h.status === 'rejected' ? `<button type="button" class="btn ghost sm" data-heist-submit>Send new proof</button>` : ''}${h.status === 'rejected' && h.reason ? `<div class="hm-why">Why: ${esc(h.reason)}</div>` : ''}${h.status === 'pending' ? '<div class="hm-why" style="color:var(--mut)">The crew is checking your proof. This page updates by itself.</div>' : ''}</div>`).join('');
+    $('#hsBoard').innerHTML = !board.length ? `<div class="hs-empty"><b>No verified heists yet.</b><span>GTA VI is out. Be the first crew to prove a heist and launch its ticker.</span><button type="button" class="btn pink" data-heist-submit>Submit heist proof →</button></div>` : board.map((h) => `
+      <article class="hb"><div class="hb-shot" style="background-image:url('${esc(gw(h.image || h.proof))}')"><span class="chip ${h.status}">${STATUS[h.status]}</span></div>
+        <div class="hb-bd"><h4>${esc(h.heist)}</h4><span class="tk">$${esc(h.ticker)}</span>
+          <div class="hb-who">by <b>${esc(h.gamertag)}</b> · ${esc(h.platformLabel)}</div>
+          ${h.mint ? `<div class="c-mid"><span class="c-cap">${fmt$(h.mcapUsd || 0)}</span><span class="prog">${h.complete ? 'Graduated' : `${((h.progress || 0) * 100).toFixed(1)}% to graduation`}</span></div><div class="c-bot"><a class="btn pink" href="${pumpUrl(h.mint)}" target="_blank" rel="noopener">Buy $${esc(h.ticker)}</a><button class="cp" data-copy="${h.mint}">${shortCa(h.mint)}</button></div>` : '<div class="hb-who">Verified. Coin not launched yet.</div>'}
+          ${h.clip ? `<a class="hb-who" href="${esc(h.clip)}" target="_blank" rel="noopener" style="color:var(--pink2)">Watch the clip ↗</a>` : ''}
+        </div></article>`).join('');
+  }
+  async function loadHeists() {
+    try {
+      const r = await fetch(`${API}/api/heists${wallet ? `?wallet=${wallet.toBase58()}` : ''}`); if (!r.ok) throw 0;
+      const d = await r.json(); HEISTS = d; if (d.platforms?.length) PLATS = d.platforms; renderPlats(); renderHeists();
+    } catch (_) {}
+  }
+  const hModal = $('#heistModal');
+  const hErr = (m) => { const e = $('#hfErr'); e.textContent = m || ''; e.hidden = !m; };
+  let proofFile = null;
+  const syncHGo = (busyH) => { $('#hfGo').disabled = !!busyH; $('#hfGo').innerHTML = busyH ? 'Uploading proof… <span>⏳</span>' : wallet ? 'Submit for review <span>→</span>' : 'Connect wallet to submit <span>→</span>'; };
+  function openHeist() { $('#heistForm').reset(); proofFile = null; $('#hfProofTxt').textContent = 'Completion screen or trophy/achievement unlock (required)'; $('#hfTick').textContent = '$—'; hErr(''); renderPlats(); syncHGo(); hModal.hidden = false; setTimeout(() => $('#hfHeist').focus(), 50); }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-heist-submit]')) { e.preventDefault(); openHeist(); return; }
+    const l = e.target.closest('[data-heist-launch]');
+    if (l) { const h = HEISTS.mine.find((x) => x.id === l.dataset.heistLaunch); if (h) window.hpLaunchHeist(h); }
+  });
+  hModal.addEventListener('click', (e) => { if (e.target === hModal || e.target.closest('[data-close-h]')) hModal.hidden = true; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hModal.hidden = true; });
+  $('#hfProof').addEventListener('change', (e) => {
+    const f = e.target.files[0]; proofFile = null; if (!f) return;
+    if (!f.type.startsWith('image/')) { e.target.value = ''; return hErr('Proof must be an image (PNG, JPG or WEBP).'); }
+    if (f.size > 8 * 1024 * 1024) { e.target.value = ''; return hErr('Screenshot must be under 8 MB.'); }
+    proofFile = f; const u = URL.createObjectURL(f); $('#hfProofTxt').innerHTML = `<img src="${u}" alt="" class="lf-prev"> ${esc(f.name)}`; hErr('');
+  });
+  $('#heistForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!wallet) { connectWallet(); return; }
+    const heist = $('#hfHeist').value.trim().replace(/\s+/g, ' '), plat = $('#hfPlat').value, gt = $('#hfId').value.trim(), clip = $('#hfClip').value.trim();
+    const p = PLATS.find((x) => x.id === plat);
+    if (heist.length < 3) return hErr('Type the heist name exactly as it shows in the game.');
+    if (tickerOf(heist).length < 2) return hErr('The heist name needs at least 2 letters or numbers.');
+    if (!p || p.soon) return hErr('Pick the platform you played on.');
+    if (!gt) return hErr(`Add your ${p.idName}.`);
+    if (!proofFile) return hErr('Add a screenshot of the heist completion screen or the trophy/achievement.');
+    if (clip && !/^https:\/\//.test(clip)) return hErr('Clip links must start with https://');
+    const fd = new FormData();
+    Object.entries({ wallet: wallet.toBase58(), heist, platform: plat, gamertag: gt, rockstarId: $('#hfRid').value.trim(), clip, note: $('#hfNote').value.trim() }).forEach(([k, v]) => fd.append(k, v));
+    fd.append('proof', proofFile, proofFile.name);
+    syncHGo(true); hErr('');
+    try {
+      const r = await fetch(`${API}/api/heist/submit`, { method: 'POST', body: fd }); const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Could not send your proof');
+      hModal.hidden = true; await loadHeists();
+      toast(j.heist.status === 'approved' ? `Verified! You can launch $${j.heist.ticker} now.` : `Proof sent. The crew is checking ${j.heist.heist}. You'll see the Launch button here once it's verified.`, 7000);
+      $('#heists').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) { hErr(String(err.message || err)); } finally { syncHGo(false); }
+  });
+
+  /* ---------- creator fees: pump.fun pays the coin's creator on every trade; claim or forward them ---------- */
+  const PUMP_ID = new W3.PublicKey('6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P');
+  let RENT0 = 0; // rent-exempt minimum of an empty account: always stays in the fee vault (read live)
+  let feeLamports = 0, feeBusy = false;
+  const creatorVault = (pk) => W3.PublicKey.findProgramAddressSync([new TextEncoder().encode('creator-vault'), pk.toBytes()], PUMP_ID)[0];
+  function syncFee() {
+    const g = $('#feeGo'); const to = $('#feeTo').value.trim();
+    g.disabled = feeBusy || (!!wallet && feeLamports <= 0);
+    g.textContent = feeBusy ? 'Working…' : !wallet ? 'Connect wallet' : feeLamports <= 0 ? 'Nothing to claim yet' : to ? `Claim & send ${(feeLamports / 1e9).toFixed(4)} SOL` : `Claim ${(feeLamports / 1e9).toFixed(4)} SOL`;
+  }
+  async function loadFees() {
+    if (!wallet) { feeLamports = 0; $('#feeAmt').textContent = '—'; $('#feeUsd').textContent = ''; $('#feeMeta').textContent = 'Connect your wallet to see your fees.'; return syncFee(); }
+    if ($('#feeAmt').textContent === '—') $('#feeMeta').textContent = 'Checking your fees…';
+    try {
+      if (!RENT0) RENT0 = await rpcCall('getMinimumBalanceForRentExemption', [0]) || 890880;
+      const info = await rpcCall('getAccountInfo', [creatorVault(wallet).toBase58(), { encoding: 'base64', dataSlice: { offset: 0, length: 0 }, commitment: 'confirmed' }]);
+      feeLamports = Math.max(0, (info?.value?.lamports || 0) - RENT0);
+      $('#feeAmt').textContent = `${(feeLamports / 1e9).toFixed(4)} SOL`; $('#feeUsd').textContent = solUsd ? `≈ ${fmt$(feeLamports / 1e9 * solUsd)}` : '';
+      const me = wallet.toBase58(), mineBiz = coins().filter((b) => b.coin.creator === me).length, mineH = HEISTS.mine.filter((h) => h.status === 'launched').length;
+      $('#feeMeta').textContent = mineBiz + mineH ? `You created ${mineBiz + mineH} Heistpad coin${mineBiz + mineH > 1 ? 's' : ''}. Fees from all your pump.fun coins are claimed together.` : 'No coins launched from this wallet yet. Launch one and every trade pays you.';
+    } catch (_) { $('#feeMeta').textContent = 'Could not read your fees right now. Try again in a moment.'; }
+    syncFee();
+  }
+  $('#feeTo').addEventListener('input', syncFee);
+  $('#feeGo').addEventListener('click', async () => {
+    if (!wallet) return connectWallet();
+    if (feeBusy || feeLamports <= 0) return;
+    const toStr = $('#feeTo').value.trim(); let to = null;
+    if (toStr) { try { to = new W3.PublicKey(toStr); } catch (_) { return toast('That wallet address is not valid'); } if (to.equals(wallet)) to = null; }
+    feeBusy = true; syncFee();
+    try {
+      const r = await fetch('https://pumpportal.fun/api/trade-local', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publicKey: wallet.toBase58(), action: 'collectCreatorFee', priorityFee: 0.0001, pool: 'pump' }) });
+      if (r.status !== 200) throw new Error(`pump.fun didn't return a claim (${r.status}). Try again.`);
+      let tx = W3.VersionedTransaction.deserialize(new Uint8Array(await r.arrayBuffer()));
+      const luts = await Promise.all(tx.message.addressTableLookups.map(async (l) => {
+        const info = await rpcCall('getAddressLookupTable', [l.accountKey.toBase58()]);
+        return new W3.AddressLookupTableAccount({ key: l.accountKey, state: W3.AddressLookupTableAccount.deserialize(Uint8Array.from(atob(info.value.data[0]), (c) => c.charCodeAt(0))) });
+      }));
+      const msg = W3.TransactionMessage.decompile(tx.message, { addressLookupTableAccounts: luts });
+      if (msg.payerKey.toBase58() !== wallet.toBase58()) throw new Error('Unexpected claim transaction. Nothing was sent.');
+      if (to) { msg.instructions.push(W3.SystemProgram.transfer({ fromPubkey: wallet, toPubkey: to, lamports: feeLamports })); tx = new W3.VersionedTransaction(msg.compileToV0Message(luts)); }
+      const sig = await signAndSend(tx, { kind: 'claim' });
+      toast(to ? `Claimed and sent to ${shortCa(to.toBase58())}` : 'Fees claimed to your wallet', 6000);
+      for (let i = 0; i < 10; i++) { await new Promise((res) => setTimeout(res, 2000)); const st = await rpcCall('getSignatureStatuses', [[sig]]); if (st?.value?.[0]?.confirmationStatus) break; }
+    } catch (err) {
+      const m = String(err?.message || err); toast(/reject|cancel|denied|declined/i.test(m) ? 'Cancelled in your wallet. Nothing was sent.' : m, 8000);
+    } finally { feeBusy = false; await loadFees(); }
+  });
+  window.addEventListener('hp:wallet', () => { syncHGo(); loadHeists().then(loadFees); });
+  window.addEventListener('hp:launched', () => { loadHeists().then(loadFees); });
+  renderPlats(); renderHeists(); syncFee();
+  loadHeists(); setInterval(() => { if (!document.hidden) loadHeists(); }, 30000);
 
   renderAll(); hud();
   loadCoins(); setInterval(() => { if (!document.hidden) loadCoins(); }, 15000);
